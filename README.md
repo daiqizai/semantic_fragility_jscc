@@ -5,35 +5,17 @@ This repository starts the first validation stage for:
 > Channel-Conditioned Semantic Fragility-Aware DeepJSCC under a Fixed
 > Transmission Budget
 
-The immediate question is deliberately narrow: does an interventional,
-channel-matched fragility score identify latent groups whose corruption causes
-semantic failure better than random, activation saliency, and gradient
-importance?
-
-## Current Scope
-
-- CIFAR-10/CIFAR-100 input at 32 x 32.
-- Convolutional DeepJSCC with an explicit channel-latent interface.
-- AWGN with per-sample power calibration.
-- Channel-group and spatial-token interventions.
-- Oracle semantic fragility based on `KL(reference || perturbed)`.
-- Random, activation-saliency, channel-aware gradient-times-activation, and
-  fragility ranks.
-- Held-out Top-K corruption evaluation using fresh channel noise.
-- Accuracy drop, consistency, semantic failure rate, and semantic KL.
-- Spearman correlation against independently sampled singleton effects.
-
-The oracle intervention replaces the selected group's AWGN realization with an
-independent realization at the same SNR. All non-selected groups retain the
-paired baseline realization. Score generation and ranking evaluation call the
-channel independently to avoid reusing the same perturbation. Competing ranking
-methods share the same held-out noise pair within each batch.
+Research definitions and fixed experimental conventions live in
+[`PROJECT.md`](PROJECT.md). AI collaborators must read
+[`AGENTS.md`](AGENTS.md) before making changes.
 
 ## Layout
 
 ```text
+AGENTS.md                mandatory AI collaboration rules
+PROJECT.md               research definition and fixed conventions
 README.md                installation and running instructions
-PROGRESS.md              authoritative current progress and conclusions
+PROGRESS.md              concise current progress and next actions
 EXPERIMENTS.md           complete experiment index
 configs/EXP-Sx-NNN_*.json
 outputs/EXP-Sx-NNN/      config snapshot, log, manifest, metrics, results
@@ -46,6 +28,14 @@ src/fragile_jscc/        channels, models, grouping, scores, evaluation
 tests/                   fast core tests
 ```
 
+Read project memory in this order before starting work:
+
+1. `AGENTS.md`
+2. `PROJECT.md`
+3. `PROGRESS.md`
+4. `EXPERIMENTS.md`
+5. `README.md`
+
 ## Quick Check
 
 The existing `semantic` environment already contains PyTorch and torchvision:
@@ -56,7 +46,20 @@ cd /data2/liulu/semantic_fragility_jscc
 /data2/liulu/miniconda3/envs/semantic/bin/python -m unittest discover -s tests
 ```
 
-## First Real Run
+## Installation
+
+The project currently uses the existing `semantic` Conda environment:
+
+```bash
+cd /data2/liulu/semantic_fragility_jscc
+/data2/liulu/miniconda3/envs/semantic/bin/python -m pip install -e .
+```
+
+Do not install or change dependencies during a running experiment.
+
+Core requirements are also listed in `requirements.txt` and `pyproject.toml`.
+
+## Running
 
 The CIFAR-10 files already exist under
 `/data2/liulu/semantic_comm/data`, which is the default data root.
@@ -86,25 +89,13 @@ including a retry after failure, must receive a new ID and config. Results for
 the ranking run are written to
 `outputs/EXP-S2-001/ranking_results.json`.
 
-Before starting or changing work, read `PROGRESS.md`. After every code change,
-training run, experiment, or important decision, update it before ending the
-task.
+Commands and full metadata for every planned or completed formal experiment
+are indexed in `EXPERIMENTS.md`. Do not reuse an experiment ID or overwrite an
+existing artifact directory.
 
-## Experimental Guardrails
+## Documentation Policy
 
-1. Keep the classifier and DeepJSCC frozen during ranking experiments.
-2. Generate oracle labels and evaluate Top-K deletion with independent noise.
-3. Compare against the strongest channel-aware gradient baseline before
-   investing in a predictor or resource allocator.
-4. Continue to fixed-budget protection only if fragility consistently improves
-   held-out deletion metrics across multiple SNR values.
-
-## Next Milestone
-
-After the ranking hypothesis survives, add:
-
-- a lightweight `P_frag(z, SNR)` predictor;
-- oracle/predicted Spearman and Kendall correlations;
-- fixed-total-power allocation first;
-- explicit side-information accounting;
-- fixed-symbol-budget allocation and Rayleigh fading second.
+- Keep `PROGRESS.md` short: summaries and paths only.
+- Put experiment commands, metadata and result tables in `EXPERIMENTS.md`.
+- Put full logs and per-epoch metrics in `outputs/EXP-xxx/`.
+- Update `PROJECT.md` before changing a public interface or research protocol.
