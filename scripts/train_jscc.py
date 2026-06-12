@@ -178,7 +178,7 @@ def train(config, run: ExperimentRun, device: torch.device) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", default="configs/EXP-S1-003_deepjscc.json"
+        "--config", default="configs/EXP-S1-005_deepjscc.json"
     )
     parser.add_argument("--device", default="cuda:0")
     args = parser.parse_args()

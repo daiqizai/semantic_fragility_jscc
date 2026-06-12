@@ -76,27 +76,27 @@ cd /data2/liulu/semantic_fragility_jscc
 CUDA_VISIBLE_DEVICES=7 \
 /data2/liulu/miniconda3/envs/semantic/bin/python \
   scripts/train_classifier.py \
-  --config configs/EXP-S1-001_classifier.json --device cuda:0
+  --config configs/EXP-S1-004_classifier.json --device cuda:0
 
 CUDA_VISIBLE_DEVICES=7 \
 /data2/liulu/miniconda3/envs/semantic/bin/python \
   scripts/train_jscc.py \
-  --config configs/EXP-S1-003_deepjscc.json --device cuda:0
+  --config configs/EXP-S1-005_deepjscc.json --device cuda:0
 
 CUDA_VISIBLE_DEVICES=7 \
 /data2/liulu/miniconda3/envs/semantic/bin/python \
   scripts/run_ranking.py \
-  --config configs/EXP-S2-001_ranking.json --device cuda:0
+  --config configs/EXP-S2-002_ranking.json --device cuda:0
 ```
 
 Each config contains a unique experiment ID. The runner refuses to overwrite
 an existing `outputs/EXP-xxx/` or `checkpoints/EXP-xxx/` directory. A retry,
 including a retry after failure, must receive a new ID and config. Results for
 the ranking run are written to
-`outputs/EXP-S2-001/ranking_results.json`.
+`outputs/EXP-S2-002/ranking_results.json`.
 
 The complete DeepJSCC test pass requires the classifier checkpoint from
-`EXP-S1-001`. It evaluates the final model at every configured test SNR and
+`EXP-S1-004`. It evaluates the final model at every configured test SNR and
 writes PSNR, four-scale CIFAR MS-SSIM, LPIPS, CBR, accuracy, prediction
 consistency, semantic failure rate and semantic KL to `metrics.jsonl` and
 `summary.json`. LPIPS uses pretrained AlexNet weights and may download them on

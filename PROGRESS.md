@@ -19,7 +19,8 @@ baseline checkpoint 或正式实验结果。
   checkpoint 目录，并拒绝覆盖已有实验。
 - CIFAR-10 本地 train/test split 可读取：50,000/10,000 张。
 - GitHub：`https://github.com/daiqizai/semantic_fragility_jscc`
-- 当前正式实验数：0；工程 dry-run 数：1。二者均不作为论文实验结果。
+- 当前完成的正式实验数：0；失败正式实验数：1；工程 dry-run 数：1。
+  dry-run 和失败实验均不作为论文结果。
 
 # 任务状态
 
@@ -28,10 +29,13 @@ baseline checkpoint 或正式实验结果。
 | 项目与实验追踪骨架 | DONE | 当前 8 个单元测试通过，配置解析与覆盖保护正常 | `src/fragile_jscc/`、`tests/` |
 | 文档职责与 AI 协作规范 | DONE | 建立五类根文档，进度与完整实验记录分离 | `AGENTS.md`、`PROJECT.md` |
 | EXP-S0-001 GPU dry-run | DONE | RTX 4090 上训练、追踪、checkpoint 和 LPIPS 流程通过 | `outputs/EXP-S0-001/summary.json` |
-| EXP-S1-001 分类器 baseline | TODO | 尚未启动 | `EXPERIMENTS.md` |
+| EXP-S1-001 分类器 baseline | INVALID | 沙箱内 CUDA 不可见，训练开始前失败；产物保留 | `outputs/EXP-S1-001/` |
 | EXP-S1-002 旧 DeepJSCC 计划 | INVALID | 未运行；评估协议不完整，由 EXP-S1-003 替代 | `EXPERIMENTS.md` |
-| EXP-S1-003 DeepJSCC baseline | BLOCKED | 完整 test 指标已实现；等待 EXP-S1-001 checkpoint | `EXPERIMENTS.md` |
-| EXP-S2-001 fragility 排序 | BLOCKED | 等待 EXP-S1-001 和 EXP-S1-003 checkpoint | `EXPERIMENTS.md` |
+| EXP-S1-003 旧 DeepJSCC 计划 | INVALID | 未运行；分类器依赖失效，由 EXP-S1-005 替代 | `EXPERIMENTS.md` |
+| EXP-S1-004 分类器 baseline | TODO | EXP-S1-001 的新 ID 重跑 | `EXPERIMENTS.md` |
+| EXP-S1-005 DeepJSCC baseline | BLOCKED | 完整 test 指标已实现；等待 EXP-S1-004 checkpoint | `EXPERIMENTS.md` |
+| EXP-S2-001 旧 fragility 排序计划 | INVALID | 未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `EXPERIMENTS.md` |
+| EXP-S2-002 fragility 排序 | BLOCKED | 等待 EXP-S1-004 和 EXP-S1-005 checkpoint | `EXPERIMENTS.md` |
 
 # 已验证结论
 
@@ -44,8 +48,8 @@ baseline checkpoint 或正式实验结果。
   直接比较。
 - `lpips==0.1.4` 在当前 torchvision 上会产生 deprecated API warning，
   但 CPU 与 GPU 实测均可正常计算。
-- 正式实验要求 Git 工作区干净；当前指标实现和 dry-run 相关改动尚未提交，
-  运行 `EXP-S1-001` 前必须先完成审查与提交。
+- 正式实验必须从干净 Git 工作区启动；GPU 训练还必须在沙箱外运行，
+  否则 PyTorch 无法访问 CUDA。
 - 训练、训练型 dry-run 和长时间实验只能使用物理 GPU 4–7；物理 GPU 0–3
   已保留，禁止占用。
 - 当前 `activation_saliency` 是 latent magnitude，尚不是严格 attention baseline。
@@ -54,12 +58,28 @@ baseline checkpoint 或正式实验结果。
 
 # 下一步
 
-1. 审查并提交当前 DeepJSCC 指标与 GPU dry-run 改动，恢复干净工作区。
-2. 运行 `EXP-S1-001` 分类器 baseline。
-3. 运行 `EXP-S1-003` DeepJSCC baseline。
-4. baseline 固定后运行阶段2 pilot，优先比较 fragility 与 channel-aware gradient。
+1. 在沙箱外运行 `EXP-S1-004` 分类器 baseline。
+2. 运行 `EXP-S1-005` DeepJSCC baseline。
+3. baseline 固定后运行 `EXP-S2-002`，优先比较 fragility 与
+   channel-aware gradient。
 
 # 最近更新
+
+## 2026-06-12：EXP-S1-001 启动失败并分配重跑 ID
+
+- 完成内容：提交 DeepJSCC 指标与 GPU dry-run 改动；从干净工作区启动
+  `EXP-S1-001`，但沙箱内 CUDA 不可见，训练 step 开始前失败；保留失败产物，
+  创建 `EXP-S1-004` 重跑配置，并为受依赖路径影响的后续计划创建
+  `EXP-S1-005` 和 `EXP-S2-002`。
+- 修改文件：新增三个配置；更新三个脚本默认配置及共享文档。
+- 执行命令：编译、8 个单元测试、smoke test、配置 ID 检查；
+  `git commit`；`CUDA_VISIBLE_DEVICES=7 ... train_classifier.py ...`；
+  沙箱外 CUDA 可用性检查。
+- 验证结果：代码验证通过；`EXP-S1-001` manifest 为 `failed`，Git commit
+  `6822ca1`、工作区干净、错误为 `No CUDA GPUs are available`；沙箱外同一
+  环境可识别物理 GPU 7 的 RTX 4090。
+- 新问题：GPU 正式实验必须在沙箱外启动。
+- 下一步：提交新实验 ID 与依赖更新后，在沙箱外运行 `EXP-S1-004`。
 
 ## 2026-06-12：记录 GPU 使用约束
 

@@ -46,10 +46,13 @@ checkpoints/EXP-Sx-NNN/
 | 实验 ID | 状态 | 有效性 | 日期 | 目的 | 结果摘要 | 配置与产物 |
 |---|---|---|---|---|---|---|
 | EXP-S0-001 | DONE | N/A | 2026-06-12 | GPU 训练、追踪、checkpoint 与 LPIPS dry-run | RTX 4090 上完整通过；仅为工程验证，不支撑研究结论 | `configs/EXP-S0-001_gpu_dryrun.json`、`outputs/EXP-S0-001/` |
-| EXP-S1-001 | TODO | N/A | - | CIFAR-10 ResNet-18 分类器 baseline | 尚未运行 | `configs/EXP-S1-001_classifier.json` |
+| EXP-S1-001 | INVALID | N/A | 2026-06-12 | CIFAR-10 ResNet-18 分类器 baseline | 沙箱内 CUDA 不可见，训练开始前失败 | `configs/EXP-S1-001_classifier.json`、`outputs/EXP-S1-001/` |
 | EXP-S1-002 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；缺少完整 test 评估，由 EXP-S1-003 替代 | `configs/EXP-S1-002_deepjscc.json` |
-| EXP-S1-003 | BLOCKED | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 完整评估已实现；等待 EXP-S1-001 checkpoint | `configs/EXP-S1-003_deepjscc.json` |
-| EXP-S2-001 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-001 和 EXP-S1-003 | `configs/EXP-S2-001_ranking.json` |
+| EXP-S1-003 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；分类器依赖失效，由 EXP-S1-005 替代 | `configs/EXP-S1-003_deepjscc.json` |
+| EXP-S1-004 | TODO | N/A | - | CIFAR-10 ResNet-18 分类器 baseline 重跑 | 等待沙箱外启动 | `configs/EXP-S1-004_classifier.json` |
+| EXP-S1-005 | BLOCKED | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 等待 EXP-S1-004 checkpoint | `configs/EXP-S1-005_deepjscc.json` |
+| EXP-S2-001 | INVALID | N/A | 2026-06-12 | 旧四种排序 held-out Top-K 计划 | 从未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `configs/EXP-S2-001_ranking.json` |
+| EXP-S2-002 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-004 和 EXP-S1-005 | `configs/EXP-S2-002_ranking.json` |
 
 # EXP-S0-001
 
@@ -88,11 +91,11 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-001
 
-- 状态：`TODO`
+- 状态：`INVALID`
 - 有效性：`N/A`
-- 日期：尚未运行
-- Git commit：运行时由 manifest 记录
-- Git 工作区：运行时必须干净
+- 日期：2026-06-12
+- Git commit：`6822ca1919fb34765108014750cbc0769bf9afdf`
+- Git 工作区：干净
 - 数据集：CIFAR-10，官方 train/test split
 - 模型：CIFAR ResNet-18
 - Checkpoint：`checkpoints/EXP-S1-001/best.pt`
@@ -110,7 +113,37 @@ CUDA_VISIBLE_DEVICES=7 \
 
 - 日志：`outputs/EXP-S1-001/run.log`
 - 指标：尚无
-- 状态解释：计划实验，未启动。
+- 状态解释：沙箱内启动后，模型迁移到 CUDA 时报告
+  `RuntimeError: No CUDA GPUs are available`，尚未执行训练 step，未生成
+  checkpoint。失败 manifest 保存在 `outputs/EXP-S1-001/run_manifest.json`；
+  沙箱外验证同一环境可访问物理 GPU 7。按 ID 不可复用规则由
+  `EXP-S1-004` 重跑。
+
+# EXP-S1-004
+
+- 状态：`TODO`
+- 有效性：`N/A`
+- 日期：尚未运行
+- Git commit：运行时由 manifest 记录
+- Git 工作区：运行时必须干净
+- 数据集：CIFAR-10，官方 train/test split
+- 模型：CIFAR ResNet-18
+- Checkpoint：`checkpoints/EXP-S1-004/best.pt`
+- 配置：`configs/EXP-S1-004_classifier.json`
+- 随机种子：7
+- 命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=7 \
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/train_classifier.py \
+  --config configs/EXP-S1-004_classifier.json \
+  --device cuda:0
+```
+
+- 日志：`outputs/EXP-S1-004/run.log`
+- 指标：尚无
+- 状态解释：`EXP-S1-001` 的同配置新 ID 重跑，必须在沙箱外启动。
 
 # EXP-S1-002
 
@@ -143,11 +176,11 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-003
 
-- 状态：`BLOCKED`
+- 状态：`INVALID`
 - 有效性：`N/A`
-- 日期：尚未运行
-- Git commit：运行时由 manifest 记录
-- Git 工作区：运行时必须干净
+- 日期：2026-06-12
+- Git commit：N/A（从未运行）
+- Git 工作区：N/A（从未运行）
 - 数据集：CIFAR-10，官方 train/test split
 - 模型：ConvDeepJSCC，latent channels = 16
 - 信道：实值 AWGN
@@ -173,17 +206,50 @@ CUDA_VISIBLE_DEVICES=7 \
 - 日志：`outputs/EXP-S1-003/run.log`
 - 指标输出：`outputs/EXP-S1-003/metrics.jsonl`
 - 汇总：`outputs/EXP-S1-003/summary.json`
-- 状态解释：评估代码已通过 CPU 单批验证，但缺少 `EXP-S1-001`
-  classifier checkpoint，因此不能启动正式训练；CUDA 训练与 LPIPS 流程已由
-  `EXP-S0-001` 验证。
+- 状态解释：从未启动。原计划依赖已失败且不可复用的 `EXP-S1-001`
+  checkpoint，因此由 `EXP-S1-005` 替代。
 
-# EXP-S2-001
+# EXP-S1-005
 
 - 状态：`BLOCKED`
 - 有效性：`N/A`
 - 日期：尚未运行
 - Git commit：运行时由 manifest 记录
 - Git 工作区：运行时必须干净
+- 数据集：CIFAR-10，官方 train/test split
+- 模型：ConvDeepJSCC，latent channels = 16
+- 信道：实值 AWGN
+- 训练 SNR：均匀采样 `[0, 20]` dB
+- 测试 SNR：0、5、10、15、20 dB
+- Checkpoint：`checkpoints/EXP-S1-005/latest.pt`
+- 分类器：`checkpoints/EXP-S1-004/best.pt`
+- 配置：`configs/EXP-S1-005_deepjscc.json`
+- 随机种子：训练 7；所有测试 SNR 使用配对信道种子 1007
+- 指标：MSE、PSNR、四尺度 CIFAR MS-SSIM、LPIPS、实值 CBR、clean
+  accuracy、reconstruction accuracy、prediction consistency、semantic
+  failure rate、semantic KL
+- 命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=7 \
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/train_jscc.py \
+  --config configs/EXP-S1-005_deepjscc.json \
+  --device cuda:0
+```
+
+- 日志：`outputs/EXP-S1-005/run.log`
+- 指标输出：`outputs/EXP-S1-005/metrics.jsonl`
+- 汇总：`outputs/EXP-S1-005/summary.json`
+- 状态解释：等待 `EXP-S1-004` classifier checkpoint。
+
+# EXP-S2-001
+
+- 状态：`INVALID`
+- 有效性：`N/A`
+- 日期：2026-06-12
+- Git commit：N/A（从未运行）
+- Git 工作区：N/A（从未运行）
 - 数据集：CIFAR-10 官方 test split，最多 1,000 张
 - 模型：冻结 DeepJSCC 与 ResNet-18
 - Checkpoint：
@@ -210,7 +276,43 @@ CUDA_VISIBLE_DEVICES=7 \
 - 日志：`outputs/EXP-S2-001/run.log`
 - 结果：`outputs/EXP-S2-001/ranking_results.json`
 - 指标：尚无
-- 状态解释：缺少两个阶段1 checkpoint，不能运行。
+- 状态解释：从未启动。依赖的两个阶段1 checkpoint ID 已失效，由
+  `EXP-S2-002` 替代。
+
+# EXP-S2-002
+
+- 状态：`BLOCKED`
+- 有效性：`N/A`
+- 日期：尚未运行
+- Git commit：运行时由 manifest 记录
+- Git 工作区：运行时必须干净
+- 数据集：CIFAR-10 官方 test split，最多 1,000 张
+- 模型：冻结 DeepJSCC 与 ResNet-18
+- Checkpoint：
+  - `checkpoints/EXP-S1-004/best.pt`
+  - `checkpoints/EXP-S1-005/latest.pt`
+- 信道：AWGN
+- 测试 SNR：0、5、10 dB
+- 排序：random、activation saliency、gradient x activation、oracle fragility
+- 粒度：channel group，group size = 2
+- Oracle Monte Carlo：4
+- Top-K 比例：0.1、0.25、0.5
+- 配置：`configs/EXP-S2-002_ranking.json`
+- 随机种子：7
+- 命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=7 \
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/run_ranking.py \
+  --config configs/EXP-S2-002_ranking.json \
+  --device cuda:0
+```
+
+- 日志：`outputs/EXP-S2-002/run.log`
+- 结果：`outputs/EXP-S2-002/ranking_results.json`
+- 指标：尚无
+- 状态解释：等待两个阶段1 checkpoint。
 
 # 结果表
 

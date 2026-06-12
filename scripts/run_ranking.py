@@ -136,7 +136,7 @@ def evaluate(cfg, run: ExperimentRun, device: torch.device) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", default="configs/EXP-S2-001_ranking.json"
+        "--config", default="configs/EXP-S2-002_ranking.json"
     )
     parser.add_argument("--device", default="cuda:0")
     args = parser.parse_args()
