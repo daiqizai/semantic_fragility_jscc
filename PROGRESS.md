@@ -49,6 +49,21 @@
 
 # 最近更新
 
+## 2026-06-12：扩充 Git 忽略保护
+
+- 完成内容：按 Python 缓存、构建产物、本地环境、IDE、数据、权重和实验产物
+  分类扩充 `.gitignore`；禁止 AI 使用 `git add -f` 绕过保护。
+- 修改文件：`.gitignore`、`AGENTS.md`、`README.md`、`PROGRESS.md`。
+- 执行命令：`git check-ignore -v` 代表路径检查；已跟踪文件审计；
+  `git ls-files -ci --exclude-standard`；`git diff --check`；
+  `python -m compileall -q src scripts tests`；
+  `python -m unittest discover -s tests -v`。
+- 验证结果：数据、权重、日志、IDE、密钥和缓存代表路径均命中预期规则；
+  没有已跟踪文件被误忽略；最大已跟踪文件约 5.8 KB；6 个单元测试通过；
+  未运行训练或正式实验。
+- 新问题：无。
+- 下一步：完善 DeepJSCC baseline 的完整测试指标。
+
 ## 2026-06-12：文档职责重构
 
 - 完成内容：新增 `AGENTS.md`、`PROJECT.md`；精简本文件；扩充

@@ -89,6 +89,10 @@ including a retry after failure, must receive a new ID and config. Results for
 the ranking run are written to
 `outputs/EXP-S2-001/ranking_results.json`.
 
+Datasets, checkpoints, logs, tracker directories and generated experiment
+artifacts are intentionally ignored by Git. Do not force-add them; share their
+paths and summary metrics through `EXPERIMENTS.md`.
+
 Commands and full metadata for every planned or completed formal experiment
 are indexed in `EXPERIMENTS.md`. Do not reuse an experiment ID or overwrite an
 existing artifact directory.

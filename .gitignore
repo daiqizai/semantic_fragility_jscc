@@ -1,8 +1,72 @@
+# Python bytecode and test/tool caches
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+
+# Packaging and build products
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local environments and secrets
 .venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Editors, assistants, and operating-system metadata
+.vscode/
+.idea/
+.codex/
+.agents/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Local datasets, downloads, and archives
 data/
+datasets/
+downloads/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# Model weights and exported runtimes
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+
+# Experiment trackers and generic run artifacts
+wandb/
+runs/
+lightning_logs/
+tensorboard/
+tb_logs/
+artifacts/
+*.log
+*.pid
+*.tmp
+*.temp
+*.bak
+
+# Formal experiment artifacts stay local; only directory sentinels are tracked
 outputs/*
 !outputs/.gitkeep
 checkpoints/*
