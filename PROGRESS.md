@@ -63,6 +63,19 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
     batch shape 为 `(4, 3, 32, 32)`
   - 稳定复现：是；依赖 `/data2/liulu/semantic_comm/data`
 
+- [x] **2026-06-12：建立 GitHub 远端与首个可追溯代码基线**
+  - 代码路径：项目根目录全部已跟踪源码与文档
+  - 配置文件：`configs/EXP-S1-001_classifier.json`、
+    `configs/EXP-S1-002_deepjscc.json`、
+    `configs/EXP-S2-001_ranking.json`
+  - 输出结果路径：无正式实验输出
+  - 验证方式：远端
+    `https://github.com/daiqizai/semantic_fragility_jscc.git` 初始为空；
+    本地分支重命名为 `main`；基线 commit 为
+    `4c99c662358db00ff27f9273aec0631295ffef6a`；提交后工作区干净；
+    6 个单元测试再次通过
+  - 稳定复现：是；正式实验 manifest 应引用此 commit 或后续干净 commit
+
 # 正在进行
 
 当前没有训练或实验进程正在运行。
@@ -106,8 +119,10 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
 
 # 问题与风险
 
-- 当前 Git 仓库没有首个 commit，状态为 `UNBORN`，全部项目文件未跟踪；正式
-  实验前应形成可追溯 commit。
+- GitHub 远端已配置为
+  `https://github.com/daiqizai/semantic_fragility_jscc.git`；首个代码基线
+  commit 为 `4c99c662358db00ff27f9273aec0631295ffef6a`。本条进度记录会形成后续
+  文档 commit，正式实验仍应检查 manifest 中的 commit 与工作区状态。
 - 当前执行会话中 `semantic` 环境报告 `torch.cuda.is_available() == False`，
   尚未验证 GPU 训练入口；服务器 GPU 本身可由 `nvidia-smi` 看到。
 - 尚无训练完成的 CIFAR-10 ResNet-18 和 DeepJSCC checkpoint。
@@ -125,18 +140,21 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
 
 # 下一步
 
-1. 创建首个可追溯 Git commit，并在后续实验 manifest 中确认工作区干净。
-2. 运行 `EXP-S1-001`，训练 CIFAR-10 ResNet-18，保存最佳 checkpoint 和逐轮准确率。
-3. 为 DeepJSCC 增加独立 test split 评估及 PSNR、MS-SSIM、LPIPS、CBR 计算，然后
+1. 为 DeepJSCC 增加独立 test split 评估及 PSNR、MS-SSIM、LPIPS、CBR 计算，然后
    使用新实验 ID 运行 baseline；不要直接启动当前仅记录 train MSE 的长期训练。
-4. 检查 GPU 环境可见性和 `semantic` 环境 CUDA 构建，先执行短 epoch GPU dry run。
-5. 在 baseline 固定后运行阶段2小规模 pilot，优先比较 semantic fragility 与
+2. 检查 GPU 环境可见性和 `semantic` 环境 CUDA 构建，先执行短 epoch GPU dry run。
+3. 运行 `EXP-S1-001`，训练 CIFAR-10 ResNet-18，保存最佳 checkpoint 和逐轮准确率。
+4. 在 baseline 固定后运行阶段2小规模 pilot，优先比较 semantic fragility 与
    channel-aware gradient 的 held-out deletion AUC 和排序相关性。
-6. 增加 bootstrap 置信区间、Kendall tau、逐样本结果保存和失败样本分析。
-7. 仅在阶段2跨多个 SNR 显著优于最强 baseline 后实现 fixed-total-power allocation。
+5. 增加 bootstrap 置信区间、Kendall tau、逐样本结果保存和失败样本分析。
+6. 仅在阶段2跨多个 SNR 显著优于最强 baseline 后实现 fixed-total-power allocation。
 
 # 变更记录
 
+- **2026-06-12：** 配置 GitHub 远端
+  `daiqizai/semantic_fragility_jscc.git`，确认远端为空后建立 `main` 分支首个
+  代码基线 commit `4c99c662358db00ff27f9273aec0631295ffef6a`；原因是让后续
+  实验能够绑定明确源码版本。
 - **2026-06-12：** 完成实验追踪改造后的验证：6 个单元测试通过、所有脚本
   编译通过、三个计划配置解析通过、`git diff --check` 通过；正式实验数量仍为
   0，未生成或填写任何指标数值。
