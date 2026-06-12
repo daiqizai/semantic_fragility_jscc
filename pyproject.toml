@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "semantic-fragility-jscc"
+version = "0.1.0"
+description = "Channel-conditioned semantic fragility experiments for DeepJSCC"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.23",
+  "torch>=2.0",
+  "torchvision>=0.15",
+  "tqdm>=4.65",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

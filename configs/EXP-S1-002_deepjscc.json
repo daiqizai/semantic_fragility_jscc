@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-S1-002",
+  "task": "train_deepjscc",
+  "seed": 7,
+  "dataset": "cifar10",
+  "data_root": "/data2/liulu/semantic_comm/data",
+  "train_split": "train",
+  "latent_channels": 16,
+  "epochs": 100,
+  "batch_size": 128,
+  "num_workers": 4,
+  "optimizer": "adam",
+  "learning_rate": 0.001,
+  "train_snr_db": [0.0, 20.0],
+  "channel": "awgn",
+  "loss": "mse"
+}
+

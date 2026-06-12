@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-S1-001",
+  "task": "train_classifier",
+  "seed": 7,
+  "dataset": "cifar10",
+  "data_root": "/data2/liulu/semantic_comm/data",
+  "train_split": "train",
+  "test_split": "test",
+  "num_classes": 10,
+  "epochs": 100,
+  "batch_size": 128,
+  "num_workers": 4,
+  "optimizer": "sgd",
+  "learning_rate": 0.1,
+  "momentum": 0.9,
+  "weight_decay": 0.0005
+}
+
