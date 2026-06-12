@@ -122,6 +122,22 @@ Fragility**，不把创新主要包装为 counterfactual learning。
 - 排序性能：Spearman、Kendall、deletion AUC。
 - 系统开销：CBR、总功率、符号数、边信息、参数量、FLOPs、推理时间。
 
+阶段1 CIFAR-10 baseline 的指标定义固定为：
+
+- PSNR 对 `[0, 1]` RGB 图像逐样本计算后取测试集均值；
+- MS-SSIM 使用适配 `32x32` 图像的四尺度版本，`3x3` Gaussian window，
+  sigma `1.5`，尺度权重为标准五尺度权重前四项归一化后的
+  `[0.05168436, 0.32948777, 0.34621597, 0.27261191]`；
+- LPIPS 使用 `alex` backbone、LPIPS version `0.1`，输入由 `[0, 1]`
+  归一化到 `[-1, 1]`；
+- 不同测试 SNR 重置到相同信道随机种子，使用配对标准高斯样本；
+- 当前实值 AWGN baseline 的 CBR 定义为每张图像 latent 实数标量数除以输入
+  RGB 标量数；若后续改为复信道符号，必须另行报告换算口径；
+- prediction consistency 比较原图和重建图的分类预测；
+- semantic failure rate 定义为“原图分类正确且重建图分类错误”的样本数除以
+  全部测试样本数；
+- semantic KL 使用原图分类分布作为 reference。
+
 指标定义或评估代码改变后，受影响实验必须在 `EXPERIMENTS.md` 标为
 `STALE`，不得继续支撑结论。
 
@@ -148,4 +164,3 @@ Fragility**，不把创新主要包装为 counterfactual learning。
 - semantic failure rate 定义；
 - baseline 公平性条件；
 - 继续或停止标准。
-

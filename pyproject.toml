@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Channel-conditioned semantic fragility experiments for DeepJSCC"
 requires-python = ">=3.9"
 dependencies = [
+  "lpips>=0.1.4",
   "numpy>=1.23",
   "torch>=2.0",
   "torchvision>=0.15",
@@ -19,4 +20,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

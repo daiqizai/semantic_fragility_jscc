@@ -1,0 +1,33 @@
+{
+  "experiment_id": "EXP-S1-003",
+  "task": "train_deepjscc",
+  "seed": 7,
+  "dataset": "cifar10",
+  "data_root": "/data2/liulu/semantic_comm/data",
+  "train_split": "train",
+  "test_split": "test",
+  "num_classes": 10,
+  "latent_channels": 16,
+  "epochs": 100,
+  "batch_size": 128,
+  "num_workers": 4,
+  "optimizer": "adam",
+  "learning_rate": 0.001,
+  "train_snr_db": [0.0, 20.0],
+  "test_snr_db": [0.0, 5.0, 10.0, 15.0, 20.0],
+  "evaluation_seed": 1007,
+  "channel": "real_awgn",
+  "loss": "mse",
+  "classifier_checkpoint": "checkpoints/EXP-S1-001/best.pt",
+  "lpips_net": "alex",
+  "lpips_version": "0.1",
+  "ms_ssim_weights": [
+    0.05168435625288417,
+    0.3294877711121366,
+    0.34621596677434235,
+    0.2726119058606368
+  ],
+  "ms_ssim_window_size": 3,
+  "ms_ssim_window_sigma": 1.5,
+  "cbr_definition": "latent_real_scalars_per_input_scalar"
+}

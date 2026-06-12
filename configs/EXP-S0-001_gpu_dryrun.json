@@ -1,0 +1,25 @@
+{
+  "experiment_id": "EXP-S0-001",
+  "task": "gpu_dry_run",
+  "seed": 7,
+  "dataset": "cifar10",
+  "data_root": "/data2/liulu/semantic_comm/data",
+  "num_classes": 10,
+  "latent_channels": 16,
+  "batch_size": 8,
+  "num_workers": 0,
+  "classifier_learning_rate": 0.01,
+  "classifier_momentum": 0.9,
+  "jscc_learning_rate": 0.001,
+  "snr_db": 5.0,
+  "lpips_net": "alex",
+  "lpips_version": "0.1",
+  "ms_ssim_weights": [
+    0.05168435625288417,
+    0.3294877711121366,
+    0.34621596677434235,
+    0.2726119058606368
+  ],
+  "ms_ssim_window_size": 3,
+  "ms_ssim_window_sigma": 1.5
+}

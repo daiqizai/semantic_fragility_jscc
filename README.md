@@ -24,6 +24,7 @@ scripts/train_classifier.py
 scripts/train_jscc.py
 scripts/run_ranking.py   first-stage ranking experiment
 scripts/smoke_test.py    no data or checkpoint required
+scripts/gpu_dry_run.py   one-batch CUDA, checkpoint and LPIPS validation
 src/fragile_jscc/        channels, models, grouping, scores, evaluation
 tests/                   fast core tests
 ```
@@ -64,6 +65,11 @@ Core requirements are also listed in `requirements.txt` and `pyproject.toml`.
 The CIFAR-10 files already exist under
 `/data2/liulu/semantic_comm/data`, which is the default data root.
 
+Training and training-style dry-runs must use physical GPU 4, 5, 6, or 7.
+Physical GPU 0-3 are reserved and must not be used. Always set
+`CUDA_VISIBLE_DEVICES` explicitly; after selecting one physical GPU,
+`--device cuda:0` refers to that selected device.
+
 ```bash
 cd /data2/liulu/semantic_fragility_jscc
 
@@ -75,7 +81,7 @@ CUDA_VISIBLE_DEVICES=7 \
 CUDA_VISIBLE_DEVICES=7 \
 /data2/liulu/miniconda3/envs/semantic/bin/python \
   scripts/train_jscc.py \
-  --config configs/EXP-S1-002_deepjscc.json --device cuda:0
+  --config configs/EXP-S1-003_deepjscc.json --device cuda:0
 
 CUDA_VISIBLE_DEVICES=7 \
 /data2/liulu/miniconda3/envs/semantic/bin/python \
@@ -88,6 +94,13 @@ an existing `outputs/EXP-xxx/` or `checkpoints/EXP-xxx/` directory. A retry,
 including a retry after failure, must receive a new ID and config. Results for
 the ranking run are written to
 `outputs/EXP-S2-001/ranking_results.json`.
+
+The complete DeepJSCC test pass requires the classifier checkpoint from
+`EXP-S1-001`. It evaluates the final model at every configured test SNR and
+writes PSNR, four-scale CIFAR MS-SSIM, LPIPS, CBR, accuracy, prediction
+consistency, semantic failure rate and semantic KL to `metrics.jsonl` and
+`summary.json`. LPIPS uses pretrained AlexNet weights and may download them on
+the first run if they are not already cached.
 
 Datasets, checkpoints, logs, tracker directories and generated experiment
 artifacts are intentionally ignored by Git. Do not force-add them; share their

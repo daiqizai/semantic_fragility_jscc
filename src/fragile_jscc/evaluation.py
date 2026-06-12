@@ -6,6 +6,7 @@ from torch import Tensor, nn
 
 from .groups import num_groups, selected_group_mask
 from .models import ConvDeepJSCC
+from .quality import multiscale_ssim, per_image_mse, psnr
 from .semantic import semantic_kl
 
 
@@ -105,3 +106,52 @@ def spearman_correlation(predicted: Tensor, target: Tensor) -> float:
     if not correlations:
         return float("nan")
     return torch.stack(correlations).mean().item()
+
+
+@torch.no_grad()
+def reconstruction_metrics(
+    classifier: nn.Module,
+    perceptual_metric: nn.Module,
+    images: Tensor,
+    reconstruction: Tensor,
+    labels: Tensor,
+    ms_ssim_weights,
+    ms_ssim_window_size: int,
+    ms_ssim_window_sigma: float,
+) -> Dict[str, Tensor]:
+    if labels.ndim != 1 or labels.shape[0] != images.shape[0]:
+        raise ValueError("labels must have shape [B]")
+
+    clean_logits = classifier(images)
+    reconstruction_logits = classifier(reconstruction)
+    clean_prediction = clean_logits.argmax(dim=-1)
+    reconstruction_prediction = reconstruction_logits.argmax(dim=-1)
+    clean_correct = clean_prediction.eq(labels)
+    reconstruction_correct = reconstruction_prediction.eq(labels)
+    perceptual_distance = perceptual_metric(
+        images, reconstruction, normalize=True
+    ).reshape(images.shape[0], -1).mean(dim=1)
+
+    return {
+        "mse": per_image_mse(images, reconstruction),
+        "psnr_db": psnr(images, reconstruction),
+        "ms_ssim": multiscale_ssim(
+            images,
+            reconstruction,
+            weights=ms_ssim_weights,
+            window_size=ms_ssim_window_size,
+            window_sigma=ms_ssim_window_sigma,
+        ),
+        "lpips": perceptual_distance,
+        "clean_accuracy": clean_correct.float(),
+        "reconstruction_accuracy": reconstruction_correct.float(),
+        "prediction_consistency": clean_prediction.eq(
+            reconstruction_prediction
+        ).float(),
+        "semantic_failure_rate": (
+            clean_correct & ~reconstruction_correct
+        ).float(),
+        "semantic_kl": semantic_kl(
+            clean_logits, reconstruction_logits
+        ),
+    }

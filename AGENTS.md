@@ -94,6 +94,14 @@ EXP-S2-003
 5. 需要共享的小型示例产物应放入明确命名的 `examples/`，并先更新
    `.gitignore` 和 `README.md` 说明用途。
 
+## GPU 使用规则
+
+1. 本项目训练、训练型 dry-run 和长时间实验不得使用物理 GPU 0、1、2、3。
+2. 只能选择物理 GPU 4、5、6、7，并通过 `CUDA_VISIBLE_DEVICES` 显式限制。
+3. 单卡命令应使用例如 `CUDA_VISIBLE_DEVICES=7 ... --device cuda:0`；其中
+   `cuda:0` 是可见设备内编号，实际对应物理 GPU 7。
+4. 启动前检查目标 GPU 的显存占用，避免影响其他任务。
+
 ## 多对话并发规则
 
 1. 修改文件前先检查 Git 状态。

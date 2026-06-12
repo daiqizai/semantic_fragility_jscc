@@ -34,13 +34,57 @@ outputs/EXP-Sx-NNN/summary.json
 checkpoints/EXP-Sx-NNN/
 ```
 
+# GPU 约束
+
+训练、训练型 dry-run 和长时间实验只能使用物理 GPU 4、5、6、7，禁止使用
+物理 GPU 0、1、2、3。命令必须通过 `CUDA_VISIBLE_DEVICES` 显式选择设备。
+例如 `CUDA_VISIBLE_DEVICES=7 ... --device cuda:0` 中的 `cuda:0` 实际对应
+物理 GPU 7。
+
 # 总索引
 
 | 实验 ID | 状态 | 有效性 | 日期 | 目的 | 结果摘要 | 配置与产物 |
 |---|---|---|---|---|---|---|
+| EXP-S0-001 | DONE | N/A | 2026-06-12 | GPU 训练、追踪、checkpoint 与 LPIPS dry-run | RTX 4090 上完整通过；仅为工程验证，不支撑研究结论 | `configs/EXP-S0-001_gpu_dryrun.json`、`outputs/EXP-S0-001/` |
 | EXP-S1-001 | TODO | N/A | - | CIFAR-10 ResNet-18 分类器 baseline | 尚未运行 | `configs/EXP-S1-001_classifier.json` |
-| EXP-S1-002 | TODO | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 尚未运行；运行前需补完整 test 指标 | `configs/EXP-S1-002_deepjscc.json` |
-| EXP-S2-001 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-001 和 DeepJSCC baseline | `configs/EXP-S2-001_ranking.json` |
+| EXP-S1-002 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；缺少完整 test 评估，由 EXP-S1-003 替代 | `configs/EXP-S1-002_deepjscc.json` |
+| EXP-S1-003 | BLOCKED | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 完整评估已实现；等待 EXP-S1-001 checkpoint | `configs/EXP-S1-003_deepjscc.json` |
+| EXP-S2-001 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-001 和 EXP-S1-003 | `configs/EXP-S2-001_ranking.json` |
+
+# EXP-S0-001
+
+- 状态：`DONE`
+- 有效性：`N/A`（工程 dry-run，不作为论文实验）
+- 日期：2026-06-12
+- Git commit：`c65220d4e347ce5bf8a9508e28f22319bbc7a116`
+- Git 工作区：不干净；完整状态记录于
+  `outputs/EXP-S0-001/run_manifest.json`
+- 数据集：CIFAR-10 官方 train/test split，各读取首个 8 样本 batch
+- 模型：随机初始化 CIFAR ResNet-18 与 ConvDeepJSCC，各执行一个优化步骤
+- 信道：实值 AWGN，5 dB
+- 配置：`configs/EXP-S0-001_gpu_dryrun.json`
+- 随机种子：7
+- 命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=7 \
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/gpu_dry_run.py \
+  --config configs/EXP-S0-001_gpu_dryrun.json \
+  --device cuda:0
+```
+
+- 环境：NVIDIA GeForce RTX 4090；PyTorch `2.7.1+cu118`；CUDA `11.8`
+- 日志：`outputs/EXP-S0-001/run.log`
+- 汇总：`outputs/EXP-S0-001/summary.json`
+- Checkpoint：
+  - `checkpoints/EXP-S0-001/classifier_step.pt`
+  - `checkpoints/EXP-S0-001/jscc_step.pt`
+- 验证结果：分类器与 DeepJSCC 前向、反向和优化步骤通过；两个 checkpoint
+  可重新加载；真实 AlexNet LPIPS 与完整单批质量/语义指标通过；峰值 CUDA
+  已分配内存 `180,979,712` bytes。
+- 状态解释：仅验证 CUDA、数据加载、日志、manifest、checkpoint 和 LPIPS
+  流程。随机初始化单批指标不具有研究意义，不进入结果表。
 
 # EXP-S1-001
 
@@ -70,12 +114,12 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-002
 
-- 状态：`TODO`
+- 状态：`INVALID`
 - 有效性：`N/A`
-- 日期：尚未运行
-- Git commit：运行时由 manifest 记录
-- Git 工作区：运行时必须干净
-- 数据集：CIFAR-10，官方 train split；test 评估尚待实现
+- 日期：2026-06-12
+- Git commit：N/A（从未运行）
+- Git 工作区：N/A（从未运行）
+- 数据集：CIFAR-10，官方 train split
 - 模型：ConvDeepJSCC，latent channels = 16
 - 信道：AWGN
 - 训练 SNR：均匀采样 `[0, 20]` dB
@@ -94,9 +138,44 @@ CUDA_VISIBLE_DEVICES=7 \
 
 - 日志：`outputs/EXP-S1-002/run.log`
 - 指标：尚无
-- 状态解释：未启动。当前脚本只记录 train MSE，正式长训练前需增加 test
-  PSNR、MS-SSIM、LPIPS、CBR 和语义指标。若配置或评估输出改变，应新建实验 ID，
-  不复用 `EXP-S1-002`。
+- 状态解释：从未启动。该计划只记录 train MSE，不能满足阶段1 baseline
+  评估要求；按不可复用规则由 `EXP-S1-003` 替代。
+
+# EXP-S1-003
+
+- 状态：`BLOCKED`
+- 有效性：`N/A`
+- 日期：尚未运行
+- Git commit：运行时由 manifest 记录
+- Git 工作区：运行时必须干净
+- 数据集：CIFAR-10，官方 train/test split
+- 模型：ConvDeepJSCC，latent channels = 16
+- 信道：实值 AWGN
+- 训练 SNR：均匀采样 `[0, 20]` dB
+- 测试 SNR：0、5、10、15、20 dB
+- Checkpoint：`checkpoints/EXP-S1-003/latest.pt`
+- 分类器：`checkpoints/EXP-S1-001/best.pt`
+- 配置：`configs/EXP-S1-003_deepjscc.json`
+- 随机种子：训练 7；所有测试 SNR 使用配对信道种子 1007
+- 指标：MSE、PSNR、四尺度 CIFAR MS-SSIM、LPIPS、实值 CBR、clean
+  accuracy、reconstruction accuracy、prediction consistency、semantic
+  failure rate、semantic KL
+- 命令：
+
+```bash
+CUDA_VISIBLE_DEVICES=7 \
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/train_jscc.py \
+  --config configs/EXP-S1-003_deepjscc.json \
+  --device cuda:0
+```
+
+- 日志：`outputs/EXP-S1-003/run.log`
+- 指标输出：`outputs/EXP-S1-003/metrics.jsonl`
+- 汇总：`outputs/EXP-S1-003/summary.json`
+- 状态解释：评估代码已通过 CPU 单批验证，但缺少 `EXP-S1-001`
+  classifier checkpoint，因此不能启动正式训练；CUDA 训练与 LPIPS 流程已由
+  `EXP-S0-001` 验证。
 
 # EXP-S2-001
 
@@ -109,7 +188,7 @@ CUDA_VISIBLE_DEVICES=7 \
 - 模型：冻结 DeepJSCC 与 ResNet-18
 - Checkpoint：
   - `checkpoints/EXP-S1-001/best.pt`
-  - `checkpoints/EXP-S1-002/latest.pt`
+  - `checkpoints/EXP-S1-003/latest.pt`
 - 信道：AWGN
 - 测试 SNR：0、5、10 dB
 - 排序：random、activation saliency、gradient x activation、oracle fragility
@@ -143,4 +222,3 @@ CUDA_VISIBLE_DEVICES=7 \
 # STALE 记录
 
 当前没有正式结果，因此没有需要标为 `STALE` 的实验。
-

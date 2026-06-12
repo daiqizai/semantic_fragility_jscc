@@ -15,5 +15,5 @@
   "num_workers": 4,
   "max_samples": 1000,
   "classifier_checkpoint": "checkpoints/EXP-S1-001/best.pt",
-  "jscc_checkpoint": "checkpoints/EXP-S1-002/latest.pt"
+  "jscc_checkpoint": "checkpoints/EXP-S1-003/latest.pt"
 }
