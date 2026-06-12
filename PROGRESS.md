@@ -73,7 +73,9 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
     `https://github.com/daiqizai/semantic_fragility_jscc.git` 初始为空；
     本地分支重命名为 `main`；基线 commit 为
     `4c99c662358db00ff27f9273aec0631295ffef6a`；提交后工作区干净；
-    6 个单元测试再次通过
+    6 个单元测试再次通过；SSH 身份认证为 GitHub 用户 `daiqizai`；
+    `main` 已推送并跟踪 `origin/main`，推送验证时 HEAD 为
+    `a6d12625aefbe87d04443906240aea827d090358`
   - 稳定复现：是；正式实验 manifest 应引用此 commit 或后续干净 commit
 
 # 正在进行
@@ -120,9 +122,10 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
 # 问题与风险
 
 - GitHub 远端已配置为
-  `https://github.com/daiqizai/semantic_fragility_jscc.git`；首个代码基线
-  commit 为 `4c99c662358db00ff27f9273aec0631295ffef6a`。本条进度记录会形成后续
-  文档 commit，正式实验仍应检查 manifest 中的 commit 与工作区状态。
+  `git@github.com:daiqizai/semantic_fragility_jscc.git`；浏览地址为
+  `https://github.com/daiqizai/semantic_fragility_jscc`。首个代码基线 commit
+  为 `4c99c662358db00ff27f9273aec0631295ffef6a`。正式实验仍应检查 manifest
+  中的 commit 与工作区状态。
 - 当前执行会话中 `semantic` 环境报告 `torch.cuda.is_available() == False`，
   尚未验证 GPU 训练入口；服务器 GPU 本身可由 `nvidia-smi` 看到。
 - 尚无训练完成的 CIFAR-10 ResNet-18 和 DeepJSCC checkpoint。
@@ -151,6 +154,9 @@ importance 更准确地预测特征受损造成的分类失败，并可指导固
 
 # 变更记录
 
+- **2026-06-12：** 首次 HTTPS push 因当前环境没有交互式 GitHub 凭据而失败；
+  检查确认服务器 SSH key 已认证为 `daiqizai`，随后将 `origin` 切换为 SSH，
+  成功推送 `main` 并设置 upstream；原因是使用服务器已有的非交互认证方式。
 - **2026-06-12：** 配置 GitHub 远端
   `daiqizai/semantic_fragility_jscc.git`，确认远端为空后建立 `main` 分支首个
   代码基线 commit `4c99c662358db00ff27f9273aec0631295ffef6a`；原因是让后续
