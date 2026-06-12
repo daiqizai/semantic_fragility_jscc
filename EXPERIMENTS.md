@@ -49,8 +49,8 @@ checkpoints/EXP-Sx-NNN/
 | EXP-S1-001 | INVALID | N/A | 2026-06-12 | CIFAR-10 ResNet-18 分类器 baseline | 沙箱内 CUDA 不可见，训练开始前失败 | `configs/EXP-S1-001_classifier.json`、`outputs/EXP-S1-001/` |
 | EXP-S1-002 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；缺少完整 test 评估，由 EXP-S1-003 替代 | `configs/EXP-S1-002_deepjscc.json` |
 | EXP-S1-003 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；分类器依赖失效，由 EXP-S1-005 替代 | `configs/EXP-S1-003_deepjscc.json` |
-| EXP-S1-004 | TODO | N/A | - | CIFAR-10 ResNet-18 分类器 baseline 重跑 | 等待沙箱外启动 | `configs/EXP-S1-004_classifier.json` |
-| EXP-S1-005 | BLOCKED | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 等待 EXP-S1-004 checkpoint | `configs/EXP-S1-005_deepjscc.json` |
+| EXP-S1-004 | DONE | FRESH | 2026-06-12 | CIFAR-10 ResNet-18 分类器 baseline 重跑 | 最佳 test accuracy 95.29%，独立 checkpoint 复算一致 | `configs/EXP-S1-004_classifier.json`、`outputs/EXP-S1-004/` |
+| EXP-S1-005 | TODO | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 分类器 checkpoint 已就绪 | `configs/EXP-S1-005_deepjscc.json` |
 | EXP-S2-001 | INVALID | N/A | 2026-06-12 | 旧四种排序 held-out Top-K 计划 | 从未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `configs/EXP-S2-001_ranking.json` |
 | EXP-S2-002 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-004 和 EXP-S1-005 | `configs/EXP-S2-002_ranking.json` |
 
@@ -121,11 +121,11 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-004
 
-- 状态：`TODO`
-- 有效性：`N/A`
-- 日期：尚未运行
-- Git commit：运行时由 manifest 记录
-- Git 工作区：运行时必须干净
+- 状态：`DONE`
+- 有效性：`FRESH`
+- 日期：2026-06-12
+- Git commit：`7ab8259e6b72ceee986aef0cfa0ecb3571a23c83`
+- Git 工作区：干净
 - 数据集：CIFAR-10，官方 train/test split
 - 模型：CIFAR ResNet-18
 - Checkpoint：`checkpoints/EXP-S1-004/best.pt`
@@ -142,8 +142,15 @@ CUDA_VISIBLE_DEVICES=7 \
 ```
 
 - 日志：`outputs/EXP-S1-004/run.log`
-- 指标：尚无
-- 状态解释：`EXP-S1-001` 的同配置新 ID 重跑，必须在沙箱外启动。
+- 指标：最佳 test accuracy `0.9529`（epoch 95）；epoch 100 test
+  accuracy `0.9519`；最终 train cross-entropy `0.0024217`
+- 汇总：`outputs/EXP-S1-004/summary.json`
+- Manifest：`outputs/EXP-S1-004/run_manifest.json`
+- 环境：NVIDIA GeForce RTX 4090；物理 GPU 7；PyTorch `2.7.1+cu118`
+- 运行时间：2026-06-12 17:34:18 至 17:47:59 UTC
+- 验证结果：`best.pt` 在 CPU 独立重载时无 missing/unexpected key；对官方
+  10,000 张 test split 复算得到 `9529/10000 = 0.9529`。
+- 状态解释：正式分类器 baseline 完成，可作为后续 DeepJSCC 语义评估模型。
 
 # EXP-S1-002
 
@@ -211,7 +218,7 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-005
 
-- 状态：`BLOCKED`
+- 状态：`TODO`
 - 有效性：`N/A`
 - 日期：尚未运行
 - Git commit：运行时由 manifest 记录
@@ -241,7 +248,7 @@ CUDA_VISIBLE_DEVICES=7 \
 - 日志：`outputs/EXP-S1-005/run.log`
 - 指标输出：`outputs/EXP-S1-005/metrics.jsonl`
 - 汇总：`outputs/EXP-S1-005/summary.json`
-- 状态解释：等待 `EXP-S1-004` classifier checkpoint。
+- 状态解释：`EXP-S1-004` classifier checkpoint 已就绪，可以启动。
 
 # EXP-S2-001
 
@@ -320,7 +327,8 @@ CUDA_VISIBLE_DEVICES=7 \
 
 | 实验 ID | Git commit | 数据集/划分 | 模型 | 信道 | 训练 SNR | 测试 SNR | CBR | Seed | PSNR | MS-SSIM | LPIPS | Accuracy | Consistency | Failure rate | 配置/日志/Checkpoint |
 |---|---|---|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| EXP-S1-004 | `7ab8259` | CIFAR-10 official train/test | CIFAR ResNet-18 | N/A | N/A | N/A | N/A | 7 | N/A | N/A | N/A | 0.9529 | N/A | N/A | `configs/EXP-S1-004_classifier.json` / `outputs/EXP-S1-004/` / `checkpoints/EXP-S1-004/best.pt` |
 
 # STALE 记录
 
-当前没有正式结果，因此没有需要标为 `STALE` 的实验。
+当前没有需要标为 `STALE` 的实验。

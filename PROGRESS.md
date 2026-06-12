@@ -4,8 +4,8 @@
 
 状态：`IN_PROGRESS`
 
-阶段0准备与定义已完成。阶段1代码入口和计划配置已准备，但尚无正式
-baseline checkpoint 或正式实验结果。
+阶段0准备与定义已完成。阶段1分类器 baseline 已完成，DeepJSCC baseline
+尚待运行。
 
 # 当前摘要
 
@@ -15,11 +15,13 @@ baseline checkpoint 或正式实验结果。
   四尺度 CIFAR MS-SSIM、LPIPS、实值 CBR 和四类语义指标。
 - `EXP-S0-001` 已在 RTX 4090 上完成独立 GPU dry-run，验证分类器与
   DeepJSCC 反向传播、实验日志、manifest、checkpoint 和真实 LPIPS 流程。
+- `EXP-S1-004` 已完成 CIFAR-10 ResNet-18 baseline，最佳 test accuracy
+  为 `95.29%`；checkpoint 独立重载复算结果一致。
 - 实验追踪支持唯一 `EXP-Sx-NNN` ID、独立配置、日志、manifest、指标与
   checkpoint 目录，并拒绝覆盖已有实验。
 - CIFAR-10 本地 train/test split 可读取：50,000/10,000 张。
 - GitHub：`https://github.com/daiqizai/semantic_fragility_jscc`
-- 当前完成的正式实验数：0；失败正式实验数：1；工程 dry-run 数：1。
+- 当前完成的正式实验数：1；失败正式实验数：1；工程 dry-run 数：1。
   dry-run 和失败实验均不作为论文结果。
 
 # 任务状态
@@ -32,14 +34,16 @@ baseline checkpoint 或正式实验结果。
 | EXP-S1-001 分类器 baseline | INVALID | 沙箱内 CUDA 不可见，训练开始前失败；产物保留 | `outputs/EXP-S1-001/` |
 | EXP-S1-002 旧 DeepJSCC 计划 | INVALID | 未运行；评估协议不完整，由 EXP-S1-003 替代 | `EXPERIMENTS.md` |
 | EXP-S1-003 旧 DeepJSCC 计划 | INVALID | 未运行；分类器依赖失效，由 EXP-S1-005 替代 | `EXPERIMENTS.md` |
-| EXP-S1-004 分类器 baseline | TODO | EXP-S1-001 的新 ID 重跑 | `EXPERIMENTS.md` |
-| EXP-S1-005 DeepJSCC baseline | BLOCKED | 完整 test 指标已实现；等待 EXP-S1-004 checkpoint | `EXPERIMENTS.md` |
+| EXP-S1-004 分类器 baseline | DONE | 最佳 test accuracy 95.29%，独立 checkpoint 复算一致 | `outputs/EXP-S1-004/summary.json` |
+| EXP-S1-005 DeepJSCC baseline | TODO | 分类器 checkpoint 已就绪，可启动 | `EXPERIMENTS.md` |
 | EXP-S2-001 旧 fragility 排序计划 | INVALID | 未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `EXPERIMENTS.md` |
 | EXP-S2-002 fragility 排序 | BLOCKED | 等待 EXP-S1-004 和 EXP-S1-005 checkpoint | `EXPERIMENTS.md` |
 
 # 已验证结论
 
 - 代码级 smoke 流程和实验追踪机制可运行。
+- CIFAR-10 ResNet-18 baseline 在 `EXP-S1-004` 达到 `95.29%` test
+  accuracy，checkpoint 可独立重载并复现该结果。
 - 尚无研究假设得到正式实验支持。
 
 # 当前风险
@@ -58,12 +62,27 @@ baseline checkpoint 或正式实验结果。
 
 # 下一步
 
-1. 在沙箱外运行 `EXP-S1-004` 分类器 baseline。
-2. 运行 `EXP-S1-005` DeepJSCC baseline。
-3. baseline 固定后运行 `EXP-S2-002`，优先比较 fragility 与
+1. 在沙箱外运行 `EXP-S1-005` DeepJSCC baseline。
+2. baseline 固定后运行 `EXP-S2-002`，优先比较 fragility 与
    channel-aware gradient。
 
 # 最近更新
+
+## 2026-06-12：完成 EXP-S1-004 分类器 baseline
+
+- 完成内容：在物理 GPU 7 上完成 100 epoch CIFAR-10 ResNet-18 训练；
+  保留全程最佳 checkpoint，并在 CPU 上独立重载后复算完整 test split。
+- 修改文件：`PROGRESS.md`、`EXPERIMENTS.md`；实验产物位于
+  `outputs/EXP-S1-004/` 和 `checkpoints/EXP-S1-004/`。
+- 执行命令：沙箱外 `CUDA_VISIBLE_DEVICES=7 ... train_classifier.py ...`；
+  summary/manifest/metrics 检查；checkpoint CPU 独立重载与 10,000 张测试集
+  复算；`git diff --check`。
+- 验证结果：manifest 为 `completed`，Git commit `7ab8259`、启动时工作区
+  干净；最佳 epoch 95，test accuracy `95.29%`；独立复算为
+  `9529/10000`，无 missing/unexpected state key。
+- 新问题：沙箱内多 worker 的独立复算受 socket 权限限制，改用
+  `num_workers=0` 后通过；正式 GPU 实验仍需在沙箱外运行。
+- 下一步：运行 `EXP-S1-005` DeepJSCC baseline。
 
 ## 2026-06-12：EXP-S1-001 启动失败并分配重跑 ID
 
