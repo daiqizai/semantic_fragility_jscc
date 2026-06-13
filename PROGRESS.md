@@ -1,11 +1,11 @@
 # 当前阶段
 
-**阶段1：Baseline**
+**阶段2：Fragility 可行性验证**
 
 状态：`IN_PROGRESS`
 
-阶段0准备与定义已完成。阶段1分类器 baseline 已完成，DeepJSCC baseline
-尚待运行。
+阶段0准备与定义、阶段1分类器和 DeepJSCC baseline 已完成。下一项为
+fragility 排序的 held-out 验证。
 
 # 当前摘要
 
@@ -17,11 +17,15 @@
   DeepJSCC 反向传播、实验日志、manifest、checkpoint 和真实 LPIPS 流程。
 - `EXP-S1-004` 已完成 CIFAR-10 ResNet-18 baseline，最佳 test accuracy
   为 `95.29%`；checkpoint 独立重载复算结果一致。
+- `EXP-S1-005` 已完成 CIFAR-10 AWGN DeepJSCC baseline；实值 CBR 为
+  `1/3`，0/5/10/15/20 dB 的 PSNR 为
+  `22.27/26.23/29.34/31.41/32.42` dB，重建分类准确率为
+  `62.79%/82.08%/88.40%/90.85%/91.33%`。
 - 实验追踪支持唯一 `EXP-Sx-NNN` ID、独立配置、日志、manifest、指标与
   checkpoint 目录，并拒绝覆盖已有实验。
 - CIFAR-10 本地 train/test split 可读取：50,000/10,000 张。
 - GitHub：`https://github.com/daiqizai/semantic_fragility_jscc`
-- 当前完成的正式实验数：1；失败正式实验数：1；工程 dry-run 数：1。
+- 当前完成的正式实验数：2；失败正式实验数：1；工程 dry-run 数：1。
   dry-run 和失败实验均不作为论文结果。
 
 # 任务状态
@@ -35,15 +39,17 @@
 | EXP-S1-002 旧 DeepJSCC 计划 | INVALID | 未运行；评估协议不完整，由 EXP-S1-003 替代 | `EXPERIMENTS.md` |
 | EXP-S1-003 旧 DeepJSCC 计划 | INVALID | 未运行；分类器依赖失效，由 EXP-S1-005 替代 | `EXPERIMENTS.md` |
 | EXP-S1-004 分类器 baseline | DONE | 最佳 test accuracy 95.29%，独立 checkpoint 复算一致 | `outputs/EXP-S1-004/summary.json` |
-| EXP-S1-005 DeepJSCC baseline | TODO | 分类器 checkpoint 已就绪，可启动 | `EXPERIMENTS.md` |
+| EXP-S1-005 DeepJSCC baseline | DONE | 100 epoch 与 5 个测试 SNR 完成；CBR 1/3，完整质量和语义指标已记录 | `outputs/EXP-S1-005/summary.json` |
 | EXP-S2-001 旧 fragility 排序计划 | INVALID | 未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `EXPERIMENTS.md` |
-| EXP-S2-002 fragility 排序 | BLOCKED | 等待 EXP-S1-004 和 EXP-S1-005 checkpoint | `EXPERIMENTS.md` |
+| EXP-S2-002 fragility 排序 | TODO | 两个阶段1 checkpoint 已就绪，可启动 held-out 排序验证 | `EXPERIMENTS.md` |
 
 # 已验证结论
 
 - 代码级 smoke 流程和实验追踪机制可运行。
 - CIFAR-10 ResNet-18 baseline 在 `EXP-S1-004` 达到 `95.29%` test
   accuracy，checkpoint 可独立重载并复现该结果。
+- CIFAR-10 AWGN DeepJSCC baseline 在固定实值 CBR `1/3` 下完成
+  0–20 dB 多 SNR 测试，图像质量和语义指标随 SNR 整体改善。
 - 尚无研究假设得到正式实验支持。
 
 # 当前风险
@@ -62,11 +68,29 @@
 
 # 下一步
 
-1. 在沙箱外运行 `EXP-S1-005` DeepJSCC baseline。
-2. baseline 固定后运行 `EXP-S2-002`，优先比较 fragility 与
-   channel-aware gradient。
+1. 运行 `EXP-S2-002`，优先比较 fragility 与 channel-aware gradient。
+2. 核验 held-out 排序评估的运行规模、显存和统计输出是否满足阶段2协议。
 
 # 最近更新
+
+## 2026-06-13：完成 EXP-S1-005 DeepJSCC baseline
+
+- 完成内容：在物理 GPU 7 上完成 100 epoch CIFAR-10 AWGN DeepJSCC
+  训练，并在 0、5、10、15、20 dB 对完整 10,000 张 test split 计算质量和
+  语义指标。
+- 修改文件：`PROGRESS.md`、`EXPERIMENTS.md`；实验产物位于
+  `outputs/EXP-S1-005/` 和 `checkpoints/EXP-S1-005/`。
+- 执行命令：GPU 占用检查；沙箱外
+  `CUDA_VISIBLE_DEVICES=7 ... train_jscc.py ...`；manifest、summary、
+  metrics 和忽略规则检查；checkpoint CPU 重载；8 个单元测试；
+  `git diff --check`。
+- 验证结果：manifest 为 `completed`，Git commit `40d89a9`、启动时工作区
+  干净；100 条训练和 5 条测试记录完整；最终 train MSE `0.00170859`；
+  checkpoint epoch 100 可重载且无 missing/unexpected key；8 个单元测试
+  通过；完整结果见 `outputs/EXP-S1-005/summary.json`。
+- 新问题：0 dB 重建分类准确率为 `62.79%`、semantic failure rate 为
+  `33.78%`，低 SNR 语义退化明显，适合作为阶段2排序验证的重点条件。
+- 下一步：运行 `EXP-S2-002` fragility 排序 held-out 验证。
 
 ## 2026-06-12：完成 EXP-S1-004 分类器 baseline
 

@@ -50,9 +50,9 @@ checkpoints/EXP-Sx-NNN/
 | EXP-S1-002 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；缺少完整 test 评估，由 EXP-S1-003 替代 | `configs/EXP-S1-002_deepjscc.json` |
 | EXP-S1-003 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；分类器依赖失效，由 EXP-S1-005 替代 | `configs/EXP-S1-003_deepjscc.json` |
 | EXP-S1-004 | DONE | FRESH | 2026-06-12 | CIFAR-10 ResNet-18 分类器 baseline 重跑 | 最佳 test accuracy 95.29%，独立 checkpoint 复算一致 | `configs/EXP-S1-004_classifier.json`、`outputs/EXP-S1-004/` |
-| EXP-S1-005 | TODO | N/A | - | CIFAR-10 AWGN DeepJSCC baseline | 分类器 checkpoint 已就绪 | `configs/EXP-S1-005_deepjscc.json` |
+| EXP-S1-005 | DONE | FRESH | 2026-06-13 | CIFAR-10 AWGN DeepJSCC baseline | CBR 1/3；0–20 dB PSNR 22.27–32.42 dB，重建准确率 62.79%–91.33% | `configs/EXP-S1-005_deepjscc.json`、`outputs/EXP-S1-005/` |
 | EXP-S2-001 | INVALID | N/A | 2026-06-12 | 旧四种排序 held-out Top-K 计划 | 从未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `configs/EXP-S2-001_ranking.json` |
-| EXP-S2-002 | BLOCKED | N/A | - | 四种排序的 held-out Top-K 验证 | 等待 EXP-S1-004 和 EXP-S1-005 | `configs/EXP-S2-002_ranking.json` |
+| EXP-S2-002 | TODO | N/A | - | 四种排序的 held-out Top-K 验证 | 两个阶段1 checkpoint 已就绪 | `configs/EXP-S2-002_ranking.json` |
 
 # EXP-S0-001
 
@@ -218,11 +218,11 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S1-005
 
-- 状态：`TODO`
-- 有效性：`N/A`
-- 日期：尚未运行
-- Git commit：运行时由 manifest 记录
-- Git 工作区：运行时必须干净
+- 状态：`DONE`
+- 有效性：`FRESH`
+- 日期：2026-06-13
+- Git commit：`40d89a99b3eb6db5a2d1c048379c4eea207535b0`
+- Git 工作区：干净
 - 数据集：CIFAR-10，官方 train/test split
 - 模型：ConvDeepJSCC，latent channels = 16
 - 信道：实值 AWGN
@@ -248,7 +248,25 @@ CUDA_VISIBLE_DEVICES=7 \
 - 日志：`outputs/EXP-S1-005/run.log`
 - 指标输出：`outputs/EXP-S1-005/metrics.jsonl`
 - 汇总：`outputs/EXP-S1-005/summary.json`
-- 状态解释：`EXP-S1-004` classifier checkpoint 已就绪，可以启动。
+- Manifest：`outputs/EXP-S1-005/run_manifest.json`
+- 环境：NVIDIA GeForce RTX 4090；物理 GPU 7；PyTorch `2.7.1+cu118`
+- 运行时间：2026-06-13 06:04:34 至 06:10:13 UTC
+- 训练结果：100 epoch 完成，最终 train MSE `0.0017085885`；checkpoint
+  `latest.pt` 记录 epoch 100，CPU 独立重载时无 missing/unexpected key。
+- 测试结果：
+
+| SNR (dB) | PSNR (dB) | MS-SSIM | LPIPS | 重建准确率 | Consistency | Failure rate | Semantic KL |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 22.2670 | 0.862133 | 0.032070 | 0.6279 | 0.6306 | 0.3378 | 1.453399 |
+| 5 | 26.2265 | 0.939615 | 0.013055 | 0.8208 | 0.8319 | 0.1441 | 0.575251 |
+| 10 | 29.3432 | 0.970882 | 0.006119 | 0.8840 | 0.9018 | 0.0788 | 0.286955 |
+| 15 | 31.4062 | 0.982888 | 0.003749 | 0.9085 | 0.9280 | 0.0544 | 0.200653 |
+| 20 | 32.4223 | 0.987116 | 0.002986 | 0.9133 | 0.9333 | 0.0496 | 0.175833 |
+
+- 共同测试条件：每个 SNR 均使用完整 10,000 张 test split；clean accuracy
+  `0.9529`；实值 CBR `1/3`；测试信道种子 `1007`。
+- 状态解释：正式 DeepJSCC baseline 完成，阶段1两个 checkpoint 均已就绪；
+  图像质量与语义指标随 SNR 整体改善，可进入阶段2 held-out 排序验证。
 
 # EXP-S2-001
 
@@ -288,7 +306,7 @@ CUDA_VISIBLE_DEVICES=7 \
 
 # EXP-S2-002
 
-- 状态：`BLOCKED`
+- 状态：`TODO`
 - 有效性：`N/A`
 - 日期：尚未运行
 - Git commit：运行时由 manifest 记录
@@ -319,7 +337,7 @@ CUDA_VISIBLE_DEVICES=7 \
 - 日志：`outputs/EXP-S2-002/run.log`
 - 结果：`outputs/EXP-S2-002/ranking_results.json`
 - 指标：尚无
-- 状态解释：等待两个阶段1 checkpoint。
+- 状态解释：`EXP-S1-004` 与 `EXP-S1-005` checkpoint 均已就绪，可以启动。
 
 # 结果表
 
@@ -328,6 +346,11 @@ CUDA_VISIBLE_DEVICES=7 \
 | 实验 ID | Git commit | 数据集/划分 | 模型 | 信道 | 训练 SNR | 测试 SNR | CBR | Seed | PSNR | MS-SSIM | LPIPS | Accuracy | Consistency | Failure rate | 配置/日志/Checkpoint |
 |---|---|---|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | EXP-S1-004 | `7ab8259` | CIFAR-10 official train/test | CIFAR ResNet-18 | N/A | N/A | N/A | N/A | 7 | N/A | N/A | N/A | 0.9529 | N/A | N/A | `configs/EXP-S1-004_classifier.json` / `outputs/EXP-S1-004/` / `checkpoints/EXP-S1-004/best.pt` |
+| EXP-S1-005 | `40d89a9` | CIFAR-10 official train/test | ConvDeepJSCC, latent 16 | real AWGN | uniform [0, 20] dB | 0 dB | 1/3 | 7 | 22.2670 | 0.862133 | 0.032070 | 0.6279 | 0.6306 | 0.3378 | `configs/EXP-S1-005_deepjscc.json` / `outputs/EXP-S1-005/` / `checkpoints/EXP-S1-005/latest.pt` |
+| EXP-S1-005 | `40d89a9` | CIFAR-10 official train/test | ConvDeepJSCC, latent 16 | real AWGN | uniform [0, 20] dB | 5 dB | 1/3 | 7 | 26.2265 | 0.939615 | 0.013055 | 0.8208 | 0.8319 | 0.1441 | same as above |
+| EXP-S1-005 | `40d89a9` | CIFAR-10 official train/test | ConvDeepJSCC, latent 16 | real AWGN | uniform [0, 20] dB | 10 dB | 1/3 | 7 | 29.3432 | 0.970882 | 0.006119 | 0.8840 | 0.9018 | 0.0788 | same as above |
+| EXP-S1-005 | `40d89a9` | CIFAR-10 official train/test | ConvDeepJSCC, latent 16 | real AWGN | uniform [0, 20] dB | 15 dB | 1/3 | 7 | 31.4062 | 0.982888 | 0.003749 | 0.9085 | 0.9280 | 0.0544 | same as above |
+| EXP-S1-005 | `40d89a9` | CIFAR-10 official train/test | ConvDeepJSCC, latent 16 | real AWGN | uniform [0, 20] dB | 20 dB | 1/3 | 7 | 32.4223 | 0.987116 | 0.002986 | 0.9133 | 0.9333 | 0.0496 | same as above |
 
 # STALE 记录
 
