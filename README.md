@@ -26,6 +26,8 @@ scripts/train_jscc.py
 scripts/run_ranking.py   first-stage ranking experiment
 scripts/make_report_assets.py
                          EXP-S1-005 report plots and transmission samples
+scripts/make_roadmap_figure.py
+                         future roadmap figure and talk track
 scripts/smoke_test.py    no data or checkpoint required
 scripts/gpu_dry_run.py   one-batch CUDA, checkpoint and LPIPS validation
 src/fragile_jscc/        channels, models, grouping, scores, evaluation
@@ -123,6 +125,16 @@ This writes quality curves, semantic robustness curves, real transmission
 examples, CSV tables and a short brief to
 `outputs/EXP-S1-005/report_assets/`. These files are ignored by Git and should
 be copied separately if the project is moved to another server.
+
+To regenerate the future-work roadmap figure for presentations:
+
+```bash
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/make_roadmap_figure.py
+```
+
+This writes a slide-ready roadmap PNG, a Markdown talk track and Mermaid source
+to `outputs/report_assets/future_roadmap/`.
 
 Datasets, checkpoints, logs, tracker directories and generated experiment
 artifacts are intentionally ignored by Git. Do not force-add them; share their

@@ -26,6 +26,8 @@ fragility 排序的 held-out 验证。
   `62.79%/82.08%/88.40%/90.85%/91.33%`。
 - `EXP-S1-005` 的汇报素材已生成，包括质量/语义曲线和真实传输重建图，
   位于 `outputs/EXP-S1-005/report_assets/`。
+- 未来研究路线图已生成，串联 Stage2 fragility 验证、Stage3 同预算保护、
+  predictor、完整实验和论文整理，位于 `outputs/report_assets/future_roadmap/`。
 - 实验追踪支持唯一 `EXP-Sx-NNN` ID、独立配置、日志、manifest、指标与
   checkpoint 目录，并拒绝覆盖已有实验。
 - CIFAR-10 本地 train/test split 可读取：50,000/10,000 张。
@@ -78,6 +80,23 @@ fragility 排序的 held-out 验证。
 2. 核验 held-out 排序评估的运行规模、显存和统计输出是否满足阶段2协议。
 
 # 最近更新
+
+## 2026-06-25：生成未来研究路线图
+
+- 完成内容：按 `PROJECT.md` 阶段定义生成可汇报路线图，明确当前最高优先级为
+  `EXP-S2-002` 排序可行性验证，并标出 Gate A（fragility 排序是否优于最强
+  baseline）和 Gate B（同预算 allocation 是否带来语义鲁棒性增益）。
+- 修改文件：`scripts/make_roadmap_figure.py`、`README.md`、`PROGRESS.md`；
+  生成产物位于 `outputs/report_assets/future_roadmap/`，由 `.gitignore` 保护。
+- 执行命令：读取共享文档；`git status --short --branch`；
+  `git log --oneline -5`；`scripts/make_roadmap_figure.py`；
+  `python -m compileall -q src scripts tests`；`python -m unittest discover -s tests -v`；
+  `git diff --check`；`git check-ignore -v` 检查路线图产物忽略规则。
+- 验证结果：路线图 PNG、Markdown 讲稿、Mermaid 源文件和 manifest 生成成功；
+  编译通过；10 个单元测试通过。
+- 新问题：路线图包含未来计划，不代表 Stage2 或 Stage3 已完成；汇报时必须把
+  当前已验证结果限定在 Stage1 baseline。
+- 下一步：用路线图说明后续研究路径，并继续运行 `EXP-S2-002`。
 
 ## 2026-06-25：生成 EXP-S1-005 汇报图表和真实传输样例
 
