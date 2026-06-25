@@ -322,6 +322,11 @@ CUDA_VISIBLE_DEVICES=7 \
 - 粒度：channel group，group size = 2
 - Oracle Monte Carlo：4
 - Top-K 比例：0.1、0.25、0.5
+- 独立随机种子：ranking 2007；held-out singleton 3007；corruption 4007；
+  bootstrap 5007
+- 统计：逐样本 Spearman/Kendall、完整 0–100% group deletion curve、
+  deletion AUC、95% percentile bootstrap CI（1,000 次）及
+  semantic fragility 相对各 baseline 的配对优势区间
 - 配置：`configs/EXP-S2-002_ranking.json`
 - 随机种子：7
 - 命令：
@@ -336,6 +341,7 @@ CUDA_VISIBLE_DEVICES=7 \
 
 - 日志：`outputs/EXP-S2-002/run.log`
 - 结果：`outputs/EXP-S2-002/ranking_results.json`
+- 逐样本结果：`outputs/EXP-S2-002/ranking_per_sample.pt`
 - 指标：尚无
 - 状态解释：`EXP-S1-004` 与 `EXP-S1-005` checkpoint 均已就绪，可以启动。
 

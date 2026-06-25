@@ -17,6 +17,7 @@ PROJECT.md               research definition and fixed conventions
 README.md                installation and running instructions
 PROGRESS.md              concise current progress and next actions
 EXPERIMENTS.md           complete experiment index
+SERVER_MIGRATION.md      checklist for moving this project to another server
 configs/EXP-Sx-NNN_*.json
 outputs/EXP-Sx-NNN/      config snapshot, log, manifest, metrics, results
 checkpoints/EXP-Sx-NNN/  model weights
@@ -92,8 +93,13 @@ CUDA_VISIBLE_DEVICES=7 \
 Each config contains a unique experiment ID. The runner refuses to overwrite
 an existing `outputs/EXP-xxx/` or `checkpoints/EXP-xxx/` directory. A retry,
 including a retry after failure, must receive a new ID and config. Results for
-the ranking run are written to
-`outputs/EXP-S2-002/ranking_results.json`.
+the ranking run are written to `outputs/EXP-S2-002/ranking_results.json`;
+per-sample correlations, deletion curves and AUC values are stored in
+`outputs/EXP-S2-002/ranking_per_sample.pt`. The summary includes Spearman and
+Kendall correlations to independent held-out singleton effects, complete
+group-deletion curves, deletion AUC, requested Top-K points, 95% bootstrap
+confidence intervals and paired semantic-fragility advantages over each
+baseline.
 
 The complete DeepJSCC test pass requires the classifier checkpoint from
 `EXP-S1-004`. It evaluates the final model at every configured test SNR and

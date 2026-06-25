@@ -1,5 +1,5 @@
 import math
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence
 
 import torch
 from torch import Tensor, nn
@@ -11,7 +11,7 @@ from .semantic import semantic_kl
 
 
 @torch.no_grad()
-def evaluate_topk_corruption(
+def evaluate_topk_corruption_samples(
     jscc: ConvDeepJSCC,
     classifier: nn.Module,
     images: Tensor,
@@ -24,11 +24,15 @@ def evaluate_topk_corruption(
     generator: Optional[torch.Generator] = None,
     base_noise: Optional[Tensor] = None,
     alternate_noise: Optional[Tensor] = None,
-) -> Dict[str, float]:
+    topk_count: Optional[int] = None,
+) -> Dict[str, Tensor]:
     """Evaluate rankings with fresh AWGN draws not used to build the scores."""
     z = jscc.encode_for_channel(images)
     groups = num_groups(tuple(z.shape), granularity, channel_group_size)
-    k = max(1, min(groups, int(math.ceil(groups * topk_ratio))))
+    if topk_count is None:
+        k = max(1, min(groups, int(math.ceil(groups * topk_ratio))))
+    else:
+        k = max(1, min(groups, int(topk_count)))
     selected = scores.topk(k, dim=1, largest=True).indices
     mask = selected_group_mask(
         z, selected, granularity, channel_group_size
@@ -57,20 +61,59 @@ def evaluate_topk_corruption(
     correct_to_wrong = baseline_correct & ~corrupted_correct
 
     return {
-        "k": float(k),
-        "baseline_accuracy": baseline_correct.float().mean().item(),
-        "corrupted_accuracy": corrupted_correct.float().mean().item(),
+        "k": torch.full(
+            (images.shape[0],), float(k), device=images.device
+        ),
+        "selected_fraction": torch.full(
+            (images.shape[0],), float(k) / groups, device=images.device
+        ),
+        "baseline_accuracy": baseline_correct.float(),
+        "corrupted_accuracy": corrupted_correct.float(),
         "accuracy_drop": (
-            baseline_correct.float().mean()
-            - corrupted_correct.float().mean()
-        ).item(),
+            baseline_correct.float() - corrupted_correct.float()
+        ),
         "prediction_consistency": baseline_prediction.eq(
             corrupted_prediction
-        ).float().mean().item(),
-        "semantic_failure_rate": correct_to_wrong.float().mean().item(),
+        ).float(),
+        "semantic_failure_rate": correct_to_wrong.float(),
         "mean_semantic_kl": semantic_kl(
             baseline_logits, corrupted_logits
-        ).mean().item(),
+        ),
+    }
+
+
+@torch.no_grad()
+def evaluate_topk_corruption(
+    jscc: ConvDeepJSCC,
+    classifier: nn.Module,
+    images: Tensor,
+    labels: Tensor,
+    scores: Tensor,
+    snr_db: float,
+    topk_ratio: float,
+    granularity: str = "channel",
+    channel_group_size: int = 1,
+    generator: Optional[torch.Generator] = None,
+    base_noise: Optional[Tensor] = None,
+    alternate_noise: Optional[Tensor] = None,
+) -> Dict[str, float]:
+    samples = evaluate_topk_corruption_samples(
+        jscc,
+        classifier,
+        images,
+        labels,
+        scores,
+        snr_db,
+        topk_ratio,
+        granularity,
+        channel_group_size,
+        generator,
+        base_noise,
+        alternate_noise,
+    )
+    return {
+        name: values.float().mean().item()
+        for name, values in samples.items()
     }
 
 
@@ -91,21 +134,138 @@ def _average_ranks(values: Tensor) -> Tensor:
     return ranks
 
 
-def spearman_correlation(predicted: Tensor, target: Tensor) -> float:
+def rank_correlations(
+    predicted: Tensor, target: Tensor
+) -> Dict[str, Tensor]:
     if predicted.shape != target.shape or predicted.ndim != 2:
         raise ValueError("predicted and target must both have shape [B, G]")
-    correlations = []
+    spearman_values = []
+    kendall_values = []
     for prediction_row, target_row in zip(predicted, target):
-        x = _average_ranks(prediction_row.detach().cpu())
-        y = _average_ranks(target_row.detach().cpu())
-        x = x - x.mean()
-        y = y - y.mean()
-        denominator = x.square().sum().sqrt() * y.square().sum().sqrt()
+        prediction_cpu = prediction_row.detach().cpu()
+        target_cpu = target_row.detach().cpu()
+        x = _average_ranks(prediction_cpu)
+        y = _average_ranks(target_cpu)
+        centered_x = x - x.mean()
+        centered_y = y - y.mean()
+        denominator = (
+            centered_x.square().sum().sqrt()
+            * centered_y.square().sum().sqrt()
+        )
         if denominator.item() > 0:
-            correlations.append((x * y).sum() / denominator)
-    if not correlations:
+            spearman = (centered_x * centered_y).sum() / denominator
+        else:
+            spearman = torch.tensor(float("nan"))
+        spearman_values.append(spearman)
+
+        concordant = 0
+        discordant = 0
+        ties_x = 0
+        ties_y = 0
+        for first in range(prediction_cpu.numel()):
+            for second in range(first + 1, prediction_cpu.numel()):
+                delta_x = prediction_cpu[first].item() - prediction_cpu[
+                    second
+                ].item()
+                delta_y = target_cpu[first].item() - target_cpu[second].item()
+                if delta_x == 0:
+                    ties_x += 1
+                if delta_y == 0:
+                    ties_y += 1
+                product = delta_x * delta_y
+                if product > 0:
+                    concordant += 1
+                elif product < 0:
+                    discordant += 1
+        total_pairs = prediction_cpu.numel() * (
+            prediction_cpu.numel() - 1
+        ) / 2
+        kendall_denominator = math.sqrt(
+            (total_pairs - ties_x) * (total_pairs - ties_y)
+        )
+        kendall_values.append(
+            torch.tensor(
+                (concordant - discordant) / kendall_denominator
+                if kendall_denominator > 0
+                else float("nan")
+            )
+        )
+    return {
+        "spearman": torch.stack(spearman_values),
+        "kendall": torch.stack(kendall_values),
+    }
+
+
+def _finite_mean(values: Tensor) -> float:
+    finite = values[torch.isfinite(values)]
+    if finite.numel() == 0:
         return float("nan")
-    return torch.stack(correlations).mean().item()
+    return finite.float().mean().item()
+
+
+def spearman_correlation(predicted: Tensor, target: Tensor) -> float:
+    return _finite_mean(rank_correlations(predicted, target)["spearman"])
+
+
+def kendall_correlation(predicted: Tensor, target: Tensor) -> float:
+    return _finite_mean(rank_correlations(predicted, target)["kendall"])
+
+
+def bootstrap_mean_ci(
+    values: Tensor,
+    bootstrap_samples: int,
+    confidence_level: float,
+    generator: Optional[torch.Generator] = None,
+) -> Dict[str, float]:
+    if not 0.0 < confidence_level < 1.0:
+        raise ValueError("confidence_level must be between 0 and 1")
+    values = values.detach().cpu().double().reshape(-1)
+    values = values[torch.isfinite(values)]
+    if values.numel() == 0:
+        return {
+            "mean": float("nan"),
+            "ci_low": float("nan"),
+            "ci_high": float("nan"),
+            "num_samples": 0,
+        }
+    mean = values.mean().item()
+    if bootstrap_samples <= 0 or values.numel() == 1:
+        return {
+            "mean": mean,
+            "ci_low": mean,
+            "ci_high": mean,
+            "num_samples": int(values.numel()),
+        }
+    indices = torch.randint(
+        values.numel(),
+        (bootstrap_samples, values.numel()),
+        generator=generator,
+    )
+    bootstrap_means = values[indices].mean(dim=1)
+    tail = (1.0 - confidence_level) / 2.0
+    bounds = torch.quantile(
+        bootstrap_means,
+        torch.tensor(
+            [tail, 1.0 - tail], dtype=bootstrap_means.dtype
+        ),
+    )
+    return {
+        "mean": mean,
+        "ci_low": bounds[0].item(),
+        "ci_high": bounds[1].item(),
+        "num_samples": int(values.numel()),
+    }
+
+
+def deletion_auc(curves: Tensor, fractions: Sequence[float]) -> Tensor:
+    if curves.ndim != 2 or curves.shape[1] != len(fractions):
+        raise ValueError("curves must have shape [N, len(fractions)]")
+    x = torch.tensor(fractions, dtype=curves.dtype, device=curves.device)
+    if x.numel() < 2 or not bool(torch.all(x[1:] > x[:-1])):
+        raise ValueError("fractions must be strictly increasing")
+    if x[0].item() != 0.0 or x[-1].item() != 1.0:
+        raise ValueError("fractions must span [0, 1]")
+    return torch.trapz(curves, x=x, dim=1)
 
 
 @torch.no_grad()

@@ -9,7 +9,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from fragile_jscc.channels import AWGNChannel
-from fragile_jscc.evaluation import reconstruction_metrics, spearman_correlation
+from fragile_jscc.evaluation import (
+    bootstrap_mean_ci,
+    deletion_auc,
+    kendall_correlation,
+    rank_correlations,
+    reconstruction_metrics,
+    spearman_correlation,
+)
 from fragile_jscc.groups import group_mask, num_groups
 from fragile_jscc.models import ConvDeepJSCC, TinySemanticClassifier
 from fragile_jscc.quality import (
@@ -62,6 +69,40 @@ class CoreTests(unittest.TestCase):
         values = torch.tensor([[3.0, 1.0, 2.0], [0.0, 4.0, 2.0]])
         correlation = spearman_correlation(values, values)
         self.assertLess(abs(correlation - 1.0), 1e-6)
+
+    def test_rank_correlations_handle_order_and_ties(self):
+        predicted = torch.tensor(
+            [[1.0, 2.0, 3.0], [1.0, 1.0, 2.0]]
+        )
+        target = torch.tensor(
+            [[3.0, 2.0, 1.0], [1.0, 1.0, 2.0]]
+        )
+        correlations = rank_correlations(predicted, target)
+        self.assertTrue(
+            torch.allclose(
+                correlations["spearman"], torch.tensor([-1.0, 1.0])
+            )
+        )
+        self.assertTrue(
+            torch.allclose(
+                correlations["kendall"], torch.tensor([-1.0, 1.0])
+            )
+        )
+        self.assertAlmostEqual(
+            kendall_correlation(predicted, target), 0.0, places=6
+        )
+
+    def test_bootstrap_ci_and_deletion_auc(self):
+        generator = torch.Generator().manual_seed(5)
+        summary = bootstrap_mean_ci(
+            torch.ones(8), 20, 0.95, generator
+        )
+        self.assertEqual(summary["mean"], 1.0)
+        self.assertEqual(summary["ci_low"], 1.0)
+        self.assertEqual(summary["ci_high"], 1.0)
+        curves = torch.tensor([[0.0, 1.0, 2.0], [0.0, 2.0, 4.0]])
+        auc = deletion_auc(curves, [0.0, 0.5, 1.0])
+        self.assertTrue(torch.allclose(auc, torch.tensor([1.0, 2.0])))
 
     def test_quality_metrics_and_cbr(self):
         torch.manual_seed(2)

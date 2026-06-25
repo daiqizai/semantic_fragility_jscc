@@ -13,6 +13,9 @@ fragility 排序的 held-out 验证。
   oracle fragility、三类比较排序和 held-out Top-K 评估已实现。
 - DeepJSCC baseline 已实现训练结束后的多 SNR 完整测试，记录 PSNR、
   四尺度 CIFAR MS-SSIM、LPIPS、实值 CBR 和四类语义指标。
+- `EXP-S2-002` 排序评估代码已补齐逐样本 Spearman/Kendall、完整 deletion
+  curve、deletion AUC、bootstrap CI 和 fragility 相对 baseline 的配对优势；
+  正式实验尚未运行。
 - `EXP-S0-001` 已在 RTX 4090 上完成独立 GPU dry-run，验证分类器与
   DeepJSCC 反向传播、实验日志、manifest、checkpoint 和真实 LPIPS 流程。
 - `EXP-S1-004` 已完成 CIFAR-10 ResNet-18 baseline，最佳 test accuracy
@@ -64,7 +67,8 @@ fragility 排序的 held-out 验证。
   已保留，禁止占用。
 - 当前 `activation_saliency` 是 latent magnitude，尚不是严格 attention baseline。
 - Gradient baseline、局部干预强度和 Monte Carlo 方差仍需公平性验证。
-- 尚无置信区间、Kendall tau、deletion AUC 或统计显著性检验。
+- `EXP-S2-002` 已具备置信区间、Kendall tau 和 deletion AUC 输出，但正式
+  排序实验尚未运行，尚无统计结论。
 
 # 下一步
 
@@ -72,6 +76,28 @@ fragility 排序的 held-out 验证。
 2. 核验 held-out 排序评估的运行规模、显存和统计输出是否满足阶段2协议。
 
 # 最近更新
+
+## 2026-06-25：准备服务器迁移并补齐阶段2评估输出
+
+- 完成内容：新增服务器迁移清单；补齐 `EXP-S2-002` 排序评估的逐样本
+  Spearman/Kendall、完整 deletion curve、deletion AUC、95% bootstrap CI
+  和 semantic fragility 相对各 baseline 的配对优势输出。
+- 修改文件：`SERVER_MIGRATION.md`、`README.md`、`EXPERIMENTS.md`、
+  `configs/EXP-S2-002_ranking.json`、`scripts/run_ranking.py`、
+  `src/fragile_jscc/config.py`、`src/fragile_jscc/evaluation.py`、
+  `tests/test_core.py`、`PROGRESS.md`。
+- 执行命令：读取项目共享文档；`git status --short --branch`；
+  `git remote -v`；实验产物大小检查；`git diff --check`；
+  `python -m compileall -q src scripts tests`；10 个单元测试；
+  `scripts/smoke_test.py`；真实 checkpoint 的 1 样本 CPU ranking 端到端检查。
+- 验证结果：编译通过；10 个单元测试通过；smoke test 通过；1 样本 ranking
+  端到端检查生成 `ranking_results.json`、`ranking_per_sample.pt` 和 150 条
+  汇总记录；未启动正式 `EXP-S2-002`。
+- 新问题：换服务器时 Git 不会携带数据、checkpoint 和 outputs，必须按
+  `SERVER_MIGRATION.md` 单独复制；当前沙箱内 `nvidia-smi` 不可用，GPU 检查
+  需在新服务器或沙箱外执行。
+- 下一步：在新服务器完成产物迁移和快速验收后，从干净工作区运行
+  `EXP-S2-002`。
 
 ## 2026-06-13：完成 EXP-S1-005 DeepJSCC baseline
 

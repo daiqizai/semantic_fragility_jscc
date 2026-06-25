@@ -23,6 +23,12 @@ class ExperimentConfig:
     max_samples: int
     classifier_checkpoint: str
     jscc_checkpoint: str
+    ranking_seed: int = 2007
+    heldout_seed: int = 3007
+    corruption_seed: int = 4007
+    bootstrap_seed: int = 5007
+    bootstrap_samples: int = 1000
+    confidence_level: float = 0.95
 
     @classmethod
     def load(cls, path: str) -> "ExperimentConfig":
