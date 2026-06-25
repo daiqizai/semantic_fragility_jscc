@@ -50,7 +50,7 @@ checkpoints/EXP-Sx-NNN/
 | EXP-S1-002 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；缺少完整 test 评估，由 EXP-S1-003 替代 | `configs/EXP-S1-002_deepjscc.json` |
 | EXP-S1-003 | INVALID | N/A | 2026-06-12 | 旧 CIFAR-10 AWGN DeepJSCC 计划 | 从未运行；分类器依赖失效，由 EXP-S1-005 替代 | `configs/EXP-S1-003_deepjscc.json` |
 | EXP-S1-004 | DONE | FRESH | 2026-06-12 | CIFAR-10 ResNet-18 分类器 baseline 重跑 | 最佳 test accuracy 95.29%，独立 checkpoint 复算一致 | `configs/EXP-S1-004_classifier.json`、`outputs/EXP-S1-004/` |
-| EXP-S1-005 | DONE | FRESH | 2026-06-13 | CIFAR-10 AWGN DeepJSCC baseline | CBR 1/3；0–20 dB PSNR 22.27–32.42 dB，重建准确率 62.79%–91.33% | `configs/EXP-S1-005_deepjscc.json`、`outputs/EXP-S1-005/` |
+| EXP-S1-005 | DONE | FRESH | 2026-06-13 | CIFAR-10 AWGN DeepJSCC baseline | CBR 1/3；0–20 dB PSNR 22.27–32.42 dB，重建准确率 62.79%–91.33%；报告图表已生成 | `configs/EXP-S1-005_deepjscc.json`、`outputs/EXP-S1-005/` |
 | EXP-S2-001 | INVALID | N/A | 2026-06-12 | 旧四种排序 held-out Top-K 计划 | 从未运行；checkpoint 依赖失效，由 EXP-S2-002 替代 | `configs/EXP-S2-001_ranking.json` |
 | EXP-S2-002 | TODO | N/A | - | 四种排序的 held-out Top-K 验证 | 两个阶段1 checkpoint 已就绪 | `configs/EXP-S2-002_ranking.json` |
 
@@ -249,6 +249,15 @@ CUDA_VISIBLE_DEVICES=7 \
 - 指标输出：`outputs/EXP-S1-005/metrics.jsonl`
 - 汇总：`outputs/EXP-S1-005/summary.json`
 - Manifest：`outputs/EXP-S1-005/run_manifest.json`
+- 汇报素材：`outputs/EXP-S1-005/report_assets/`
+  - `quality_vs_snr.png`：PSNR、MS-SSIM、LPIPS 随测试 SNR 的变化。
+  - `semantic_vs_snr.png`：重建准确率、一致性、failure rate 和 semantic
+    KL 随测试 SNR 的变化。
+  - `actual_transmission_grid.png`：6 张 CIFAR-10 样本在原图和
+    0/5/10/15/20 dB 真实 DeepJSCC 传输后的重建对比。
+  - `transmission_samples/`：单张原图和各 SNR 重建 PNG。
+  - `report_metrics.csv`、`transmission_sample_metrics.csv`、
+    `report_brief.md`、`asset_manifest.json`。
 - 环境：NVIDIA GeForce RTX 4090；物理 GPU 7；PyTorch `2.7.1+cu118`
 - 运行时间：2026-06-13 06:04:34 至 06:10:13 UTC
 - 训练结果：100 epoch 完成，最终 train MSE `0.0017085885`；checkpoint
@@ -265,6 +274,17 @@ CUDA_VISIBLE_DEVICES=7 \
 
 - 共同测试条件：每个 SNR 均使用完整 10,000 张 test split；clean accuracy
   `0.9529`；实值 CBR `1/3`；测试信道种子 `1007`。
+- 汇报素材生成命令：
+
+```bash
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/make_report_assets.py \
+  --device cpu
+```
+
+- 汇报素材说明：这些图片和 CSV 是从 `EXP-S1-005` 已验证 summary 与
+  checkpoint 派生的可视化，不是新的正式实验；它们支持 baseline 随 SNR
+  改善的描述，但不支持 fragility 排序优于 baseline 的结论。
 - 状态解释：正式 DeepJSCC baseline 完成，阶段1两个 checkpoint 均已就绪；
   图像质量与语义指标随 SNR 整体改善，可进入阶段2 held-out 排序验证。
 

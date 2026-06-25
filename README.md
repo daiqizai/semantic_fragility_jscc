@@ -24,6 +24,8 @@ checkpoints/EXP-Sx-NNN/  model weights
 scripts/train_classifier.py
 scripts/train_jscc.py
 scripts/run_ranking.py   first-stage ranking experiment
+scripts/make_report_assets.py
+                         EXP-S1-005 report plots and transmission samples
 scripts/smoke_test.py    no data or checkpoint required
 scripts/gpu_dry_run.py   one-batch CUDA, checkpoint and LPIPS validation
 src/fragile_jscc/        channels, models, grouping, scores, evaluation
@@ -107,6 +109,20 @@ writes PSNR, four-scale CIFAR MS-SSIM, LPIPS, CBR, accuracy, prediction
 consistency, semantic failure rate and semantic KL to `metrics.jsonl` and
 `summary.json`. LPIPS uses pretrained AlexNet weights and may download them on
 the first run if they are not already cached.
+
+To regenerate the current stage-1 report figures from the completed
+`EXP-S1-005` artifacts:
+
+```bash
+/data2/liulu/miniconda3/envs/semantic/bin/python \
+  scripts/make_report_assets.py \
+  --device cpu
+```
+
+This writes quality curves, semantic robustness curves, real transmission
+examples, CSV tables and a short brief to
+`outputs/EXP-S1-005/report_assets/`. These files are ignored by Git and should
+be copied separately if the project is moved to another server.
 
 Datasets, checkpoints, logs, tracker directories and generated experiment
 artifacts are intentionally ignored by Git. Do not force-add them; share their

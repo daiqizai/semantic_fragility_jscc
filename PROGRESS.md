@@ -24,6 +24,8 @@ fragility 排序的 held-out 验证。
   `1/3`，0/5/10/15/20 dB 的 PSNR 为
   `22.27/26.23/29.34/31.41/32.42` dB，重建分类准确率为
   `62.79%/82.08%/88.40%/90.85%/91.33%`。
+- `EXP-S1-005` 的汇报素材已生成，包括质量/语义曲线和真实传输重建图，
+  位于 `outputs/EXP-S1-005/report_assets/`。
 - 实验追踪支持唯一 `EXP-Sx-NNN` ID、独立配置、日志、manifest、指标与
   checkpoint 目录，并拒绝覆盖已有实验。
 - CIFAR-10 本地 train/test split 可读取：50,000/10,000 张。
@@ -76,6 +78,28 @@ fragility 排序的 held-out 验证。
 2. 核验 held-out 排序评估的运行规模、显存和统计输出是否满足阶段2协议。
 
 # 最近更新
+
+## 2026-06-25：生成 EXP-S1-005 汇报图表和真实传输样例
+
+- 完成内容：基于已完成的 `EXP-S1-005` baseline 汇总指标生成可汇报素材，
+  包括 SNR-质量曲线、SNR-语义鲁棒性曲线、真实 DeepJSCC 传输重建网格、
+  单张原图/重建图、CSV 指标表和简短汇报要点。
+- 修改文件：`scripts/make_report_assets.py`、`README.md`、`PROGRESS.md`、
+  `EXPERIMENTS.md`；生成产物位于
+  `outputs/EXP-S1-005/report_assets/`，该目录由 `.gitignore` 保护。
+- 执行命令：读取共享文档；`git status --short`；`git log --oneline -5`；
+  `git diff --check`；`python -m compileall -q src scripts tests`；
+  `python -m unittest discover -s tests -v`；
+  `scripts/make_report_assets.py --device cpu`；`git check-ignore -v`
+  检查报告图片忽略规则。
+- 验证结果：编译通过；10 个单元测试通过；报告素材脚本在 CPU 上完成，
+  生成 `quality_vs_snr.png`、`semantic_vs_snr.png`、
+  `actual_transmission_grid.png`、`report_brief.md`、两份 CSV 和
+  `transmission_samples/`。
+- 新问题：这些图只说明 DeepJSCC baseline 随 SNR 变化的质量和语义退化，
+  不能作为 semantic fragility 排序优于 baseline 的证据；该结论仍需
+  `EXP-S2-002`。
+- 下一步：将这些素材用于阶段1汇报，同时继续运行 `EXP-S2-002` 排序验证。
 
 ## 2026-06-25：准备服务器迁移并补齐阶段2评估输出
 
